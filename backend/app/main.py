@@ -1,22 +1,21 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-from app.routers.health import router as health_router
-from app.routers.sourcing import router as sourcing_router
-
-app = FastAPI(
-    title="JARVIS-CommerceOS API",
-    version="0.1.0",
-    description="AI sourcing first MVP",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(health_router)
-app.include_router(sourcing_router, prefix="/api/v1")
+from sqlalchemy import select
+from app.core.config import settings
+from app.core.security import hash_password
+from app.db import Base,SessionLocal,engine
+from app.models import User
+from app.routers.auth import router as auth
+from app.routers.health import router as health
+from app.routers.sourcing import router as sourcing
+def init_db():
+ Base.metadata.create_all(bind=engine)
+ with SessionLocal() as db:
+  if db.scalar(select(User).where(User.email==settings.default_admin_email)) is None:
+   db.add(User(email=settings.default_admin_email,hashed_password=hash_password(settings.default_admin_password),role='owner',is_active=True));db.commit()
+@asynccontextmanager
+async def lifespan(_:FastAPI):init_db();yield
+app=FastAPI(title=settings.app_name,version=settings.app_version,lifespan=lifespan)
+app.include_router(health);app.include_router(auth,prefix='/api/v1');app.include_router(sourcing,prefix='/api/v1')
+@app.get('/')
+def root():return {'service':settings.app_name,'version':settings.app_version,'docs':'/docs'}

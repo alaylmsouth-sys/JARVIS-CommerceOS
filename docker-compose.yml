@@ -5,35 +5,36 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-jarvis}
       POSTGRES_USER: ${POSTGRES_USER:-jarvis}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jarvis} -d ${POSTGRES_DB:-jarvis}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis_data:/data]
   backend:
     build: ./backend
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://jarvis:change-me@db:5432/jarvis}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+      ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-1440}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@jarvis.local}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-change-me-now}
     depends_on:
-      - db
-      - redis
-    ports:
-      - "8000:8000"
-
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
+    ports: ["8001:8000"]
   frontend:
     build: ./frontend
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    depends_on:
-      - backend
-    ports:
-      - "3000:3000"
-
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8000}
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-/api/backend}
+    depends_on: [backend]
+    ports: ["3000:3000"]
 volumes:
   postgres_data:
+  redis_data:
