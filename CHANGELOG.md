@@ -5,3 +5,15 @@
 - Expanded the AI Sourcing input workflow
 - Kept the engine free and rule-based
 - Prepared score, margin and approval UI upgrades
+
+## 1.2.0
+- Added free keyword candidate search
+- Added deterministic sample candidate generation
+- Added profit, margin and score preview
+- Added save-to-analysis workflow
+
+## 1.2.0
+- Added free keyword candidate search
+- Added deterministic sample candidate generation
+- Added profit, margin and score preview
+- Added save-to-analysis workflow

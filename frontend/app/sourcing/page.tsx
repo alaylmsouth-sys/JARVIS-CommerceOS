@@ -1,5 +1,65 @@
-'use client';import {FormEvent,useEffect,useState} from 'react';
-const API=process.env.NEXT_PUBLIC_API_BASE??'/api/backend';
-export default function Page(){const[token,setToken]=useState('');const[email,setEmail]=useState('admin@jarvis.example.com');const[password,setPassword]=useState('change-me-now');const[items,setItems]=useState<any[]>([]);const[name,setName]=useState('');const[msg,setMsg]=useState('');useEffect(()=>{const t=localStorage.getItem('jarvis_token');if(t)setToken(t)},[]);async function login(e:FormEvent){e.preventDefault();const r=await fetch(`${API}/api/v1/auth/login`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,password})});if(!r.ok)return setMsg('로그인 실패');const d=await r.json();localStorage.setItem('jarvis_token',d.access_token);setToken(d.access_token);setMsg('')}async function load(){if(!token)return;const r=await fetch(`${API}/api/v1/sourcing/candidates`,{headers:{authorization:`Bearer ${token}`},cache:'no-store'});if(r.ok)setItems(await r.json())}useEffect(()=>{void load()},[token]);async function create(e:FormEvent){e.preventDefault();const r=await fetch(`${API}/api/v1/sourcing/candidates`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({name,marketplace:'coupang',country:'KR',source_price:10000,target_price:25000,shipping_cost:3000,platform_fee_rate:12,ad_cost_rate:5,competition_score:50,trend_score:70,brand_score:65})});if(r.ok){setName('');setMsg('분석 완료');await load()}else setMsg('등록 실패')}
-if(!token)return <main className="login"><form onSubmit={login} className="card"><h1>JARVIS</h1><p>CommerceOS AI Sourcing v1.1</p><input value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)}/><button>로그인</button><span>{msg}</span></form></main>;
-return <main className="app"><aside><h1>JARVIS</h1><nav><b>AI Sourcing</b><span>Commerce</span><span>Trading</span><span>Telegram</span><span>Media Studio</span><span>Finance</span><span>AI Center</span><span>Settings</span></nav></aside><section><header><div><small>PRIMARY MODULE</small><h2>AI Sourcing Center</h2></div><button onClick={()=>{localStorage.removeItem('jarvis_token');setToken('')}}>로그아웃</button></header><form onSubmit={create} className="card form"><h3>상품 후보 분석</h3><input required placeholder="상품명" value={name} onChange={e=>setName(e.target.value)}/><button>무료 점수 계산 및 등록</button><span>{msg}</span></form><div className="grid">{items.map(i=><article className="card" key={i.id}><small>{i.marketplace.toUpperCase()} · {i.country}</small><h3>{i.name}</h3><strong>{i.total_score}점</strong><p>마진 {i.margin_rate}% · {i.recommendation}</p><p>{i.explanation}</p></article>)}</div></section></main>}
+"use client";
+import { FormEvent, useEffect, useState } from "react";
+const API = process.env.NEXT_PUBLIC_API_BASE ?? "/api/backend";
+
+type Candidate = {
+  name:string; marketplace:string; country:string;
+  source_price:number; target_price:number; shipping_cost:number;
+  platform_fee_rate:number; ad_cost_rate:number;
+  competition_score:number; trend_score:number; brand_score:number;
+  total_cost:number; gross_profit:number; margin_rate:number;
+  total_score:number; recommendation:string; explanation:string;
+};
+
+export default function SourcingPage(){
+  const [token,setToken]=useState("");
+  const [email,setEmail]=useState("admin@jarvis.example.com");
+  const [password,setPassword]=useState("change-me-now");
+  const [keyword,setKeyword]=useState("");
+  const [marketplace,setMarketplace]=useState("coupang");
+  const [country,setCountry]=useState("KR");
+  const [results,setResults]=useState<Candidate[]>([]);
+  const [message,setMessage]=useState("");
+  const [busy,setBusy]=useState(false);
+
+  useEffect(()=>{ const saved=localStorage.getItem("jarvis_token"); if(saved) setToken(saved); },[]);
+
+  async function login(e:FormEvent){
+    e.preventDefault(); setBusy(true); setMessage("");
+    try{
+      const r=await fetch(`${API}/api/v1/auth/login`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email,password})});
+      if(!r.ok){setMessage("로그인 정보를 확인하세요.");return;}
+      const d=await r.json(); localStorage.setItem("jarvis_token",d.access_token); setToken(d.access_token);
+    }finally{setBusy(false)}
+  }
+
+  async function search(e:FormEvent){
+    e.preventDefault(); setBusy(true); setMessage("");
+    try{
+      const r=await fetch(`${API}/api/v1/sourcing/search`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${token}`},body:JSON.stringify({keyword,marketplace,country})});
+      if(!r.ok){setMessage(`검색 실패: ${await r.text()}`);return;}
+      setResults(await r.json());
+    }finally{setBusy(false)}
+  }
+
+  async function save(item:Candidate){
+    setBusy(true); setMessage("");
+    try{
+      const r=await fetch(`${API}/api/v1/sourcing/candidates`,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${token}`},body:JSON.stringify({
+        name:item.name,marketplace:item.marketplace,country:item.country,
+        source_price:item.source_price,target_price:item.target_price,shipping_cost:item.shipping_cost,
+        platform_fee_rate:item.platform_fee_rate,ad_cost_rate:item.ad_cost_rate,
+        competition_score:item.competition_score,trend_score:item.trend_score,brand_score:item.brand_score
+      })});
+      setMessage(r.ok?`${item.name} 저장 완료`:`저장 실패: ${await r.text()}`);
+    }finally{setBusy(false)}
+  }
+
+  if(!token) return <main className="login"><form className="card login-card" onSubmit={login}><h1>JARVIS</h1><p>AI Sourcing v1.2</p><input value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)}/><button disabled={busy}>{busy?"확인 중...":"로그인"}</button><span>{message}</span></form></main>;
+
+  return <main className="app"><aside><h1>JARVIS</h1><nav><b>AI Sourcing</b><span>Commerce</span><span>Trading</span><span>Telegram</span><span>Media Studio</span><span>Finance</span><span>AI Center</span><span>Settings</span></nav></aside><section className="page"><header><div><small>PRIMARY MODULE</small><h2>AI Sourcing Search</h2><p>무료 샘플 카탈로그와 규칙 엔진으로 후보를 생성합니다.</p></div><button className="secondary" onClick={()=>{localStorage.removeItem("jarvis_token");setToken("")}}>로그아웃</button></header>
+  <form className="card search-bar" onSubmit={search}><input required placeholder="예: 휴대용 선풍기, 텀블러, 블렌더" value={keyword} onChange={e=>setKeyword(e.target.value)}/><select value={marketplace} onChange={e=>setMarketplace(e.target.value)}><option value="coupang">쿠팡</option><option value="naver">네이버</option><option value="amazon">Amazon</option><option value="shopee">Shopee</option><option value="lazada">Lazada</option></select><input value={country} onChange={e=>setCountry(e.target.value)}/><button disabled={busy}>{busy?"검색 중...":"후보 검색"}</button></form>
+  {message&&<p className="notice">{message}</p>}
+  <section className="results-grid">{results.map(item=><article className="card result-card" key={`${item.name}-${item.marketplace}`}><div className="result-top"><div><small>{item.marketplace.toUpperCase()} · {item.country}</small><h3>{item.name}</h3></div><div className="score">{item.total_score}</div></div><div className="stats"><span>매입가 <b>{item.source_price.toLocaleString()}</b></span><span>판매가 <b>{item.target_price.toLocaleString()}</b></span><span>순이익 <b>{item.gross_profit.toLocaleString()}</b></span><span>마진 <b>{item.margin_rate}%</b></span></div><p>{item.explanation}</p><button className="approve" disabled={busy} onClick={()=>void save(item)}>분석 목록에 저장</button></article>)}</section>
+  </section></main>;
+}

@@ -5,6 +5,8 @@ from app.db.models import AuditLog,SourcingCandidate,User
 from app.db.session import get_db
 from app.modules.sourcing.schemas import CandidateCreate,CandidateRead,CandidateStatusUpdate
 from app.modules.sourcing.scoring import calculate_score
+from app.modules.sourcing.search import search_candidates
+from app.modules.sourcing.search_schemas import SearchCandidate, SearchRequest
 from app.shared.deps import get_current_user
 router=APIRouter(prefix='/sourcing',tags=['sourcing'])
 @router.get('/candidates',response_model=list[CandidateRead])
@@ -20,3 +22,8 @@ def update_status(candidate_id:int,payload:CandidateStatusUpdate,db:Session=Depe
     c=db.get(SourcingCandidate,candidate_id)
     if c is None: raise HTTPException(status_code=404,detail='Candidate not found')
     c.status=payload.status;db.add(AuditLog(actor_user_id=user.id,action=f'candidate.{payload.status}',entity_type='sourcing_candidate',entity_id=str(c.id),detail=c.name));db.commit();db.refresh(c);return c
+
+
+@router.post("/search", response_model=list[SearchCandidate])
+def search(payload: SearchRequest, _: User = Depends(get_current_user)) -> list[dict]:
+    return search_candidates(payload.keyword, payload.marketplace, payload.country)
