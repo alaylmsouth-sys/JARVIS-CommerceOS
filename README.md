@@ -1,25 +1,27 @@
-# JARVIS-CommerceOS v0.2.0
+# JARVIS-CommerceOS Foundation v1.0
 
-AI Sourcing Center MVP입니다.
+안정적인 장기 확장을 위한 기반 버전입니다.
 
 ## 포함 기능
-- 관리자 로그인(JWT)
-- 상품 후보 등록 및 PostgreSQL 저장
-- 마진·경쟁·트렌드·브랜드 점수 계산
-- AI 추천 설명
-- 승인·거절
-- 탭 전환형 대시보드
-- 쿠팡·네이버·Amazon·Shopee·Lazada 확장용 Adapter 골격
+- FastAPI + PostgreSQL + Redis
+- JWT 로그인
+- AI Sourcing 후보 등록/조회
+- 마진 및 점수 계산
+- 승인/거절 워크플로우
+- 감사 로그
+- Next.js 탭형 대시보드
+- Docker Compose 및 GitHub Actions
 
 ## 실행
 ```bash
 cp .env.example .env
-docker compose down
+docker compose down -v
 docker compose up --build
 ```
 
-- Dashboard: Codespaces 포트 `3000`
-- API: Codespaces 포트 `8001`
-- API 문서: `8001/docs`
+- Dashboard: http://localhost:3000
+- API: http://localhost:8001
+- Swagger: http://localhost:8001/docs
+- Health: http://localhost:8001/health
 
 기본 로그인: `admin@jarvis.local` / `change-me-now`

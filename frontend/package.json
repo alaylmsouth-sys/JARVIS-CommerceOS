@@ -1,12 +1,11 @@
 {
-  "name": "jarvis-commerceos-dashboard",
-  "version": "0.1.0",
+  "name": "jarvis-commerceos-frontend",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "next": "15.3.4",
@@ -14,8 +13,9 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "typescript": "5.8.3",
     "@types/node": "22.15.32",
     "@types/react": "19.1.8",
-    "typescript": "5.8.3"
+    "@types/react-dom": "19.1.6"
   }
 }

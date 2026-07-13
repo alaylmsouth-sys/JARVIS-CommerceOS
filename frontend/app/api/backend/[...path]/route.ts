@@ -1,0 +1,4 @@
+import type {NextRequest} from 'next/server';
+const backend=process.env.BACKEND_INTERNAL_URL??'http://backend:8000';
+async function proxy(request:NextRequest,context:{params:Promise<{path:string[]}>}){const {path}=await context.params;const incoming=new URL(request.url);const target=new URL(`/${path.join('/')}`,backend);target.search=incoming.search;const headers=new Headers();const a=request.headers.get('authorization');const c=request.headers.get('content-type');if(a)headers.set('authorization',a);if(c)headers.set('content-type',c);const init:RequestInit={method:request.method,headers,cache:'no-store'};if(!['GET','HEAD'].includes(request.method))init.body=await request.text();const r=await fetch(target,init);return new Response(await r.text(),{status:r.status,headers:{'content-type':r.headers.get('content-type')??'application/json'}})}
+export const GET=proxy;export const POST=proxy;export const PATCH=proxy;
