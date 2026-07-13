@@ -17,3 +17,9 @@
 - Added deterministic sample candidate generation
 - Added profit, margin and score preview
 - Added save-to-analysis workflow
+
+## 1.2.1
+- Added persistent saved-candidate loading
+- Added search/saved tabs
+- Added duplicate protection
+- Added persistent approval status display

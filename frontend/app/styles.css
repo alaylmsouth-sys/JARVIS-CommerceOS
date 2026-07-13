@@ -13,3 +13,4 @@
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
 .stats span{color:#91a2c8}.stats b{display:block;color:white;margin-top:4px}.notice{color:#a9efd3}
 @media(max-width:900px){.search-bar{grid-template-columns:1fr}}
+.tab-row{display:flex;gap:8px;margin-bottom:16px}.tab{background:transparent;color:#9fb0d4;border:1px solid #33476f}.tab.active{background:#203a69;color:#fff}.saved-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;color:#9fb0d4;margin:12px 0 16px}.saved-toolbar select{width:auto}.actions{display:flex;gap:9px;margin-top:13px}.reject{background:#402128;color:#ffc0ca;border:1px solid #703340}
