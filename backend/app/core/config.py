@@ -2,7 +2,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name:str='JARVIS-CommerceOS API'
-    app_version:str='1.0.0'
+    app_version:str='1.0.1'
     database_url:str='sqlite:///./jarvis.db'
     jwt_secret:str='development-secret'
     jwt_algorithm:str='HS256'
