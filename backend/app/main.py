@@ -8,6 +8,7 @@ from app.db.models import User
 from app.db.session import SessionLocal,engine
 from app.modules.auth.router import router as auth_router
 from app.modules.sourcing.router import router as sourcing_router
+from app.modules.projects.router import router as projects_router
 def init_db():
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
