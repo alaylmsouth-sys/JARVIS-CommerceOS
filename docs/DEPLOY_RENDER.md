@@ -32,6 +32,23 @@ web service plans, replace the public backend connection with Render private
 networking, and configure backups. Review the displayed monthly cost in Render
 before applying those changes.
 
+## Database migrations
+
+The API image runs `python -m app.db.migrate` before starting Uvicorn. That
+command applies Alembic migrations from `backend/alembic`.
+
+For a fresh database, Alembic creates the full schema with revision
+`0001_initial_schema`. For an existing v1.3.2 staging database that was created
+by SQLAlchemy `create_all`, the migration runner detects the existing baseline
+schema, stamps `0001_initial_schema`, and then applies any newer revisions.
+
+Before adding future schema-changing revisions:
+
+1. Back up the target database.
+2. Add a new Alembic revision under `backend/alembic/versions`.
+3. Run backend tests locally or in CI.
+4. Deploy to staging and verify the application flow before production.
+
 ## Verify the deployment
 
 1. Open the API service URL with `/health` and confirm version `1.3.2`.
@@ -46,7 +63,3 @@ Render waits for GitHub checks to pass before automatically deploying a `main`
 commit. If a release fails, open the affected service in Render and roll back to
 the previous successful deploy. The PostgreSQL database is not rolled back with
 application code; take a database backup before future schema changes.
-
-The API container creates missing v1.3.2 tables before starting. Introduce a
-versioned migration tool before making destructive or data-transforming schema
-changes.
