@@ -26,3 +26,5 @@
 - Isolated the test database so repeated test runs remain deterministic
 - Aligned the default admin email across API, Docker and dashboard
 - Upgraded Next.js and React to patched versions in the existing release line
+- Fixed proxy handling for bodyless HTTP responses such as 204
+- Removed obsolete one-time upgrade scripts after their changes were integrated
