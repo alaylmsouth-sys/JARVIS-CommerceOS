@@ -22,7 +22,7 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
       ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-1440}
-      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@jarvis.local}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@jarvis.example.com}
       DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-change-me-now}
     depends_on:
       db: {condition: service_healthy}

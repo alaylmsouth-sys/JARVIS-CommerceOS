@@ -3,6 +3,12 @@ set -euo pipefail
 
 cd "${1:-.}"
 
+if [[ -f backend/app/modules/projects/router.py ]] && \
+   grep -q "class Project(Base)" backend/app/db/models.py; then
+    echo "Project System v1.3 is already applied."
+    exit 0
+fi
+
 mkdir -p backend/app/modules/projects
 touch backend/app/modules/projects/__init__.py
 
