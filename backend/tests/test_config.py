@@ -46,3 +46,20 @@ def test_production_accepts_secure_render_configuration() -> None:
     )
 
     assert settings.environment == "production"
+
+
+def test_production_validation_errors_hide_secret_inputs() -> None:
+    secret_password = "do-not-log"
+
+    with pytest.raises(ValidationError) as error:
+        Settings(
+            _env_file=None,
+            environment="production",
+            database_url="postgresql://jarvis:secret@db:5432/jarvis",
+            jwt_secret="x" * 32,
+            default_admin_email="owner@example.com",
+            default_admin_password=secret_password,
+        )
+
+    assert secret_password not in str(error.value)
+    assert "input_value" not in str(error.value)

@@ -16,7 +16,11 @@ class Settings(BaseSettings):
     default_admin_email: str = "admin@jarvis.example.com"
     default_admin_password: str = "change-me-now"
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+        hide_input_in_errors=True,
+    )
 
     @field_validator("database_url", mode="before")
     @classmethod
