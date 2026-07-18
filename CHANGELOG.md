@@ -10,6 +10,7 @@
 - Removed the placeholder Telegram navigation entry while that module is out of scope
 - Added AI Center with domain-specific AI staff for Sourcing, Commerce, Projects, Media, Finance, Trading and Operations
 - Added a six-stage operating plan for staging-to-production product development
+- Added a unified command cockpit dashboard and shared application shell across active modules
 
 ## 1.3.2
 
