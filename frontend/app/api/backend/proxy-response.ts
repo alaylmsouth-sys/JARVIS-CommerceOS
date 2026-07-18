@@ -1,5 +1,12 @@
 const bodylessStatuses = new Set([204, 205, 304]);
 
+export function normalizeBackendUrl(
+  value: string,
+  defaultProtocol: "http" | "https" = "http",
+): string {
+  return /^https?:\/\//.test(value) ? value : `${defaultProtocol}://${value}`;
+}
+
 export async function createProxyResponse(response: Response): Promise<Response> {
   const bodyless = bodylessStatuses.has(response.status);
   const body = bodyless ? null : await response.text();

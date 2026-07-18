@@ -1,8 +1,12 @@
 import type { NextRequest } from "next/server";
 
-import { createProxyResponse } from "../proxy-response";
+import { createProxyResponse, normalizeBackendUrl } from "../proxy-response";
 
-const backend = process.env.BACKEND_INTERNAL_URL ?? "http://backend:8000";
+const externalBackend = process.env.BACKEND_EXTERNAL_HOSTNAME;
+const backend = normalizeBackendUrl(
+  externalBackend ?? process.env.BACKEND_INTERNAL_URL ?? "http://backend:8000",
+  externalBackend ? "https" : "http",
+);
 
 async function proxy(
   request: NextRequest,
