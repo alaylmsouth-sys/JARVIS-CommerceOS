@@ -24,8 +24,6 @@ def upgrade() -> None:
         "sourcing_candidates",
         sa.Column("tags", sa.String(length=500), nullable=False, server_default=""),
     )
-    op.alter_column("sourcing_candidates", "notes", server_default=None)
-    op.alter_column("sourcing_candidates", "tags", server_default=None)
 
 
 def downgrade() -> None:
