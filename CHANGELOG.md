@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added Alembic-based database migrations with an initial v1.3.2 baseline revision
+- Replaced runtime table creation with a startup migration runner
+- Added migration documentation and a regression test for idempotent migration execution
+
 ## 1.3.2
 
 - Added a cost-controlled Render staging Blueprint for the API, dashboard and PostgreSQL
