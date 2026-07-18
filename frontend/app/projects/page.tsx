@@ -157,7 +157,7 @@ export default function ProjectsPage() {
           <span>Trading</span>
           <span>Media Studio</span>
           <span>Finance</span>
-          <span>AI Center</span>
+          <a href="/ai-center">AI Center</a>
           <span>Settings</span>
         </nav>
       </aside>
@@ -178,39 +178,19 @@ export default function ProjectsPage() {
           <div className="card">
             <h3>새 프로젝트</h3>
             <form onSubmit={createProject} className="project-form">
-              <input
-                required
-                minLength={2}
-                placeholder="예: 캠핑용품"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-              <input
-                placeholder="프로젝트 설명"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
+              <input required minLength={2} placeholder="예: 캠핑용품" value={name} onChange={(event) => setName(event.target.value)} />
+              <input placeholder="프로젝트 설명" value={description} onChange={(event) => setDescription(event.target.value)} />
               <button>프로젝트 생성</button>
             </form>
 
             <div className="project-list">
               {projects.map((project) => (
-                <button
-                  key={project.id}
-                  className={
-                    selectedProject === project.id
-                      ? "project-item active"
-                      : "project-item"
-                  }
-                  onClick={() => void selectProject(project.id)}
-                >
+                <button key={project.id} className={selectedProject === project.id ? "project-item active" : "project-item"} onClick={() => void selectProject(project.id)}>
                   <strong>{project.name}</strong>
                   <span>{project.status}</span>
                 </button>
               ))}
-              {projects.length === 0 && (
-                <div className="empty">첫 프로젝트를 만들어 보세요.</div>
-              )}
+              {projects.length === 0 && <div className="empty">첫 프로젝트를 만들어 보세요.</div>}
             </div>
           </div>
 
@@ -223,15 +203,10 @@ export default function ProjectsPage() {
                 {projectCandidates.map((item) => (
                   <article className="project-candidate" key={item.id}>
                     <h4>{item.name}</h4>
-                    <p>
-                      {item.marketplace.toUpperCase()} · {item.total_score}점 · 마진{" "}
-                      {item.margin_rate}%
-                    </p>
+                    <p>{item.marketplace.toUpperCase()} · {item.total_score}점 · 마진 {item.margin_rate}%</p>
                   </article>
                 ))}
-                {projectCandidates.length === 0 && (
-                  <div className="empty">아직 추가된 후보가 없습니다.</div>
-                )}
+                {projectCandidates.length === 0 && <div className="empty">아직 추가된 후보가 없습니다.</div>}
               </div>
             )}
           </div>
@@ -245,18 +220,11 @@ export default function ProjectsPage() {
             {candidates.map((candidate) => (
               <article className="project-candidate" key={candidate.id}>
                 <h4>{candidate.name}</h4>
-                <p>
-                  {candidate.marketplace.toUpperCase()} · {candidate.total_score}점 · 마진{" "}
-                  {candidate.margin_rate}%
-                </p>
-                <button onClick={() => void attachCandidate(candidate.id)}>
-                  선택 프로젝트에 추가
-                </button>
+                <p>{candidate.marketplace.toUpperCase()} · {candidate.total_score}점 · 마진 {candidate.margin_rate}%</p>
+                <button onClick={() => void attachCandidate(candidate.id)}>선택 프로젝트에 추가</button>
               </article>
             ))}
-            {candidates.length === 0 && (
-              <div className="empty">AI Sourcing에서 후보를 먼저 저장하세요.</div>
-            )}
+            {candidates.length === 0 && <div className="empty">AI Sourcing에서 후보를 먼저 저장하세요.</div>}
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.db.models import User
 from app.db.session import SessionLocal
+from app.modules.ai_center.router import router as ai_center_router
 from app.modules.auth.router import router as auth_router
 from app.modules.projects.router import router as projects_router
 from app.modules.sourcing.router import router as sourcing_router
@@ -41,6 +42,7 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(sourcing_router, prefix="/api/v1")
 app.include_router(projects_router, prefix="/api/v1")
+app.include_router(ai_center_router, prefix="/api/v1")
 
 
 @app.get("/")

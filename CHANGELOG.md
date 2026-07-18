@@ -8,6 +8,8 @@
 - Added AI Sourcing candidate review metadata with notes, tags and expanded review statuses
 - Added saved-candidate review controls to update status, notes and tags from the dashboard
 - Removed the placeholder Telegram navigation entry while that module is out of scope
+- Added AI Center with domain-specific AI staff for Sourcing, Commerce, Projects, Media, Finance, Trading and Operations
+- Added a six-stage operating plan for staging-to-production product development
 
 ## 1.3.2
 
