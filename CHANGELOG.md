@@ -7,6 +7,7 @@
 - Added idempotent database initialization before the API starts
 - Added Docker build checks and frontend regression tests to CI
 - Added reproducible frontend dependency locking and deployment documentation
+- Hid configuration input values from production validation errors to prevent secrets from appearing in deploy logs
 
 ## 1.1.0
 
