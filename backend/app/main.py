@@ -5,16 +5,14 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.security import hash_password
-from app.db.base import Base
 from app.db.models import User
-from app.db.session import SessionLocal, engine
+from app.db.session import SessionLocal
 from app.modules.auth.router import router as auth_router
 from app.modules.projects.router import router as projects_router
 from app.modules.sourcing.router import router as sourcing_router
 
 
 def init_db() -> None:
-    Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         user = db.scalar(select(User).where(User.email == settings.default_admin_email))
         if user is None:
