@@ -5,6 +5,9 @@
 - Added Alembic-based database migrations with an initial v1.3.2 baseline revision
 - Replaced runtime table creation with a startup migration runner
 - Added migration documentation and a regression test for idempotent migration execution
+- Added AI Sourcing candidate review metadata with notes, tags and expanded review statuses
+- Added saved-candidate review controls to update status, notes and tags from the dashboard
+- Removed the placeholder Telegram navigation entry while that module is out of scope
 
 ## 1.3.2
 

@@ -31,6 +31,8 @@ class SourcingCandidate(Base):
     recommendation:Mapped[str]=mapped_column(String(30))
     explanation:Mapped[str]=mapped_column(Text)
     status:Mapped[str]=mapped_column(String(30),default='pending',index=True)
+    notes:Mapped[str]=mapped_column(Text,default='')
+    tags:Mapped[str]=mapped_column(String(500),default='')
     created_by_id:Mapped[int]=mapped_column(ForeignKey('users.id'))
     created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utcnow)
     updated_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utcnow,onupdate=utcnow)

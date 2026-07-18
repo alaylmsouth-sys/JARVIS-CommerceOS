@@ -155,7 +155,6 @@ export default function ProjectsPage() {
           <b>Projects</b>
           <span>Commerce</span>
           <span>Trading</span>
-          <span>Telegram</span>
           <span>Media Studio</span>
           <span>Finance</span>
           <span>AI Center</span>

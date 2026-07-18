@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.db.models import AuditLog,SourcingCandidate,User
 from app.db.session import get_db
-from app.modules.sourcing.schemas import CandidateCreate,CandidateRead,CandidateStatusUpdate
+from app.modules.sourcing.schemas import CandidateCreate,CandidateRead,CandidateReviewUpdate,CandidateStatusUpdate
 from app.modules.sourcing.scoring import calculate_score
 from app.modules.sourcing.search import search_candidates
 from app.modules.sourcing.search_schemas import SearchCandidate, SearchRequest
@@ -24,13 +24,22 @@ def create_candidate(payload:CandidateCreate,db:Session=Depends(get_db),user:Use
     if existing is not None:
         raise HTTPException(status_code=409, detail='Candidate already exists')
     s=calculate_score(payload)
-    c=SourcingCandidate(**payload.model_dump(),total_cost=s.total_cost,gross_profit=s.gross_profit,margin_rate=s.margin_rate,total_score=s.total_score,recommendation=s.recommendation,explanation=s.explanation,status='pending',created_by_id=user.id)
+    c=SourcingCandidate(**payload.model_dump(),total_cost=s.total_cost,gross_profit=s.gross_profit,margin_rate=s.margin_rate,total_score=s.total_score,recommendation=s.recommendation,explanation=s.explanation,status='pending',notes='',tags='',created_by_id=user.id)
     db.add(c);db.flush();db.add(AuditLog(actor_user_id=user.id,action='candidate.created',entity_type='sourcing_candidate',entity_id=str(c.id),detail=c.name));db.commit();db.refresh(c);return c
 @router.patch('/candidates/{candidate_id}/status',response_model=CandidateRead)
 def update_status(candidate_id:int,payload:CandidateStatusUpdate,db:Session=Depends(get_db),user:User=Depends(get_current_user)):
     c=db.get(SourcingCandidate,candidate_id)
     if c is None: raise HTTPException(status_code=404,detail='Candidate not found')
     c.status=payload.status;db.add(AuditLog(actor_user_id=user.id,action=f'candidate.{payload.status}',entity_type='sourcing_candidate',entity_id=str(c.id),detail=c.name));db.commit();db.refresh(c);return c
+@router.patch('/candidates/{candidate_id}/review',response_model=CandidateRead)
+def update_review(candidate_id:int,payload:CandidateReviewUpdate,db:Session=Depends(get_db),user:User=Depends(get_current_user)):
+    c=db.get(SourcingCandidate,candidate_id)
+    if c is None: raise HTTPException(status_code=404,detail='Candidate not found')
+    c.status=payload.status
+    c.notes=payload.notes.strip()
+    c.tags=payload.tags.strip()
+    db.add(AuditLog(actor_user_id=user.id,action='candidate.review.updated',entity_type='sourcing_candidate',entity_id=str(c.id),detail=f'{c.name} -> {c.status}'))
+    db.commit();db.refresh(c);return c
 
 
 @router.post("/search", response_model=list[SearchCandidate])
