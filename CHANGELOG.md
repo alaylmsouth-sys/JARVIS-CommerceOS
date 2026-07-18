@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.2
+
+- Added a cost-controlled Render staging Blueprint for the API, dashboard and PostgreSQL
+- Added production secret and persistent database validation
+- Added idempotent database initialization before the API starts
+- Added Docker build checks and frontend regression tests to CI
+- Added reproducible frontend dependency locking and deployment documentation
+
 ## 1.1.0
 
 - Expanded the AI Sourcing input workflow
