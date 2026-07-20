@@ -1,30 +1,338 @@
 "use client";
+
 import { FormEvent, useEffect, useMemo, useState } from "react";
+
+import { AppShell } from "../components/AppShell";
+
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "/api/backend";
 
-type BaseCandidate={name:string;marketplace:string;country:string;source_price:number;target_price:number;shipping_cost:number;platform_fee_rate:number;ad_cost_rate:number;competition_score:number;trend_score:number;brand_score:number;total_cost:number;gross_profit:number;margin_rate:number;total_score:number;recommendation:string;explanation:string};
-type SavedCandidate=BaseCandidate&{id:number;status:"pending"|"approved"|"rejected"};
+type CandidateStatus = "pending" | "approved" | "rejected";
 
-export default function SourcingPage(){
- const [token,setToken]=useState(""); const [email,setEmail]=useState("admin@jarvis.example.com"); const [password,setPassword]=useState("change-me-now");
- const [keyword,setKeyword]=useState(""); const [marketplace,setMarketplace]=useState("coupang"); const [country,setCountry]=useState("KR");
- const [results,setResults]=useState<BaseCandidate[]>([]); const [saved,setSaved]=useState<SavedCandidate[]>([]); const [tab,setTab]=useState<"search"|"saved">("search");
- const [sort,setSort]=useState<"score"|"margin"|"recent">("score"); const [busy,setBusy]=useState(false); const [message,setMessage]=useState("");
- useEffect(()=>{const t=localStorage.getItem("jarvis_token");if(t)setToken(t)},[]);
- useEffect(()=>{if(token)void loadSaved()},[token]);
- async function authFetch(path:string,init:RequestInit={}){const h=new Headers(init.headers);h.set("authorization",`Bearer ${token}`);if(init.body)h.set("content-type","application/json");return fetch(`${API}${path}`,{...init,headers:h,cache:"no-store"})}
- async function login(e:FormEvent){e.preventDefault();setBusy(true);const r=await fetch(`${API}/api/v1/auth/login`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email,password})});setBusy(false);if(!r.ok){setMessage("로그인 정보를 확인하세요.");return}const d=await r.json();localStorage.setItem("jarvis_token",d.access_token);setToken(d.access_token)}
- async function loadSaved(){const r=await authFetch("/api/v1/sourcing/candidates");if(r.status===401){localStorage.removeItem("jarvis_token");setToken("");return}if(r.ok)setSaved(await r.json())}
- async function search(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");const r=await authFetch("/api/v1/sourcing/search",{method:"POST",body:JSON.stringify({keyword,marketplace,country})});setBusy(false);if(!r.ok){setMessage(`검색 실패: ${await r.text()}`);return}setResults(await r.json());setTab("search")}
- async function saveCandidate(c:BaseCandidate){setBusy(true);setMessage("");const r=await authFetch("/api/v1/sourcing/candidates",{method:"POST",body:JSON.stringify({name:c.name,marketplace:c.marketplace,country:c.country,source_price:c.source_price,target_price:c.target_price,shipping_cost:c.shipping_cost,platform_fee_rate:c.platform_fee_rate,ad_cost_rate:c.ad_cost_rate,competition_score:c.competition_score,trend_score:c.trend_score,brand_score:c.brand_score})});setBusy(false);if(r.status===409){setMessage("이미 저장된 상품 후보입니다.");return}if(!r.ok){setMessage(`저장 실패: ${await r.text()}`);return}setMessage(`${c.name} 저장 완료`);await loadSaved();setTab("saved")}
- async function changeStatus(id:number,status:"approved"|"rejected"){setBusy(true);const r=await authFetch(`/api/v1/sourcing/candidates/${id}/status`,{method:"PATCH",body:JSON.stringify({status})});setBusy(false);if(!r.ok){setMessage(`상태 변경 실패: ${await r.text()}`);return}await loadSaved()}
- const sorted=useMemo(()=>{const c=[...saved];if(sort==="score")return c.sort((a,b)=>b.total_score-a.total_score);if(sort==="margin")return c.sort((a,b)=>b.margin_rate-a.margin_rate);return c.sort((a,b)=>b.id-a.id)},[saved,sort]);
- if(!token)return <main className="login"><form onSubmit={login} className="card login-card"><h1>JARVIS</h1><p>AI Sourcing v1.2.1</p><input value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)}/><button disabled={busy}>{busy?"확인 중...":"로그인"}</button><span>{message}</span></form></main>;
- return <main className="app"><aside><h1>JARVIS</h1><nav><b>AI Sourcing</b><span>Commerce</span><span>Trading</span><span>Telegram</span><span>Media Studio</span><span>Finance</span><span>AI Center</span><span>Settings</span></nav></aside><section className="page"><header><div><small>PRIMARY MODULE</small><h2>AI Sourcing Search</h2><p>검색 결과와 저장 목록을 분리해 관리합니다.</p></div><button className="secondary" onClick={()=>{localStorage.removeItem("jarvis_token");setToken("")}}>로그아웃</button></header>
- <form className="card search-bar" onSubmit={search}><input required placeholder="예: 휴대용 선풍기" value={keyword} onChange={e=>setKeyword(e.target.value)}/><select value={marketplace} onChange={e=>setMarketplace(e.target.value)}><option value="coupang">쿠팡</option><option value="naver">네이버</option><option value="amazon">Amazon</option><option value="shopee">Shopee</option><option value="lazada">Lazada</option></select><input value={country} onChange={e=>setCountry(e.target.value)}/><button disabled={busy}>{busy?"처리 중...":"후보 검색"}</button></form>
- <div className="tab-row"><button className={tab==="search"?"tab active":"tab"} onClick={()=>setTab("search")}>검색 결과 ({results.length})</button><button className={tab==="saved"?"tab active":"tab"} onClick={()=>setTab("saved")}>저장 목록 ({saved.length})</button></div>{message&&<p className="notice">{message}</p>}
- {tab==="saved"&&<div className="saved-toolbar"><span>저장된 후보는 새로고침 후에도 유지됩니다.</span><select value={sort} onChange={e=>setSort(e.target.value as typeof sort)}><option value="score">점수 높은 순</option><option value="margin">마진 높은 순</option><option value="recent">최근 저장 순</option></select></div>}
- <section className="results-grid">{tab==="search"&&results.map(i=><article className="card result-card" key={`${i.name}-${i.marketplace}`}><div className="result-top"><div><small>{i.marketplace.toUpperCase()} · {i.country}</small><h3>{i.name}</h3></div><div className="score">{i.total_score}</div></div><div className="stats"><span>매입가 <b>{i.source_price.toLocaleString()}</b></span><span>판매가 <b>{i.target_price.toLocaleString()}</b></span><span>순이익 <b>{i.gross_profit.toLocaleString()}</b></span><span>마진 <b>{i.margin_rate}%</b></span></div><p>{i.explanation}</p><button className="approve" disabled={busy} onClick={()=>void saveCandidate(i)}>분석 목록에 저장</button></article>)}
- {tab==="saved"&&sorted.map(i=><article className="card result-card" key={i.id}><div className="result-top"><div><small>{i.marketplace.toUpperCase()} · {i.country}</small><h3>{i.name}</h3></div><div className="score">{i.total_score}</div></div><div className="stats"><span>순이익 <b>{i.gross_profit.toLocaleString()}</b></span><span>마진 <b>{i.margin_rate}%</b></span><span>판정 <b>{i.recommendation}</b></span><span>상태 <b>{i.status}</b></span></div><p>{i.explanation}</p>{i.status==="pending"&&<div className="actions"><button className="approve" disabled={busy} onClick={()=>void changeStatus(i.id,"approved")}>승인</button><button className="reject" disabled={busy} onClick={()=>void changeStatus(i.id,"rejected")}>거절</button></div>}</article>)}
- {tab==="saved"&&sorted.length===0&&<div className="card empty">저장된 상품 후보가 없습니다.</div>}</section></section></main>
+type BaseCandidate = {
+  name: string;
+  marketplace: string;
+  country: string;
+  source_price: number;
+  target_price: number;
+  shipping_cost: number;
+  platform_fee_rate: number;
+  ad_cost_rate: number;
+  competition_score: number;
+  trend_score: number;
+  brand_score: number;
+  total_cost: number;
+  gross_profit: number;
+  margin_rate: number;
+  total_score: number;
+  recommendation: string;
+  explanation: string;
+};
+
+type SavedCandidate = BaseCandidate & {
+  id: number;
+  status: CandidateStatus;
+};
+
+const statusLabel: Record<CandidateStatus, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+function candidateInput(candidate: BaseCandidate) {
+  return {
+    name: candidate.name,
+    marketplace: candidate.marketplace,
+    country: candidate.country,
+    source_price: candidate.source_price,
+    target_price: candidate.target_price,
+    shipping_cost: candidate.shipping_cost,
+    platform_fee_rate: candidate.platform_fee_rate,
+    ad_cost_rate: candidate.ad_cost_rate,
+    competition_score: candidate.competition_score,
+    trend_score: candidate.trend_score,
+    brand_score: candidate.brand_score,
+  };
+}
+
+export default function SourcingPage() {
+  const [ready, setReady] = useState(false);
+  const [token, setToken] = useState("");
+  const [email, setEmail] = useState("admin@jarvis.example.com");
+  const [password, setPassword] = useState("change-me-now");
+  const [keyword, setKeyword] = useState("");
+  const [marketplace, setMarketplace] = useState("coupang");
+  const [country, setCountry] = useState("KR");
+  const [results, setResults] = useState<BaseCandidate[]>([]);
+  const [saved, setSaved] = useState<SavedCandidate[]>([]);
+  const [tab, setTab] = useState<"search" | "saved">("search");
+  const [sort, setSort] = useState<"score" | "margin" | "recent">("score");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setToken(localStorage.getItem("jarvis_token") ?? "");
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (token) void loadSaved();
+  }, [token]);
+
+  function clearSession() {
+    localStorage.removeItem("jarvis_token");
+    setToken("");
+  }
+
+  async function authFetch(path: string, init: RequestInit = {}) {
+    const headers = new Headers(init.headers);
+    headers.set("authorization", `Bearer ${token}`);
+    if (init.body) headers.set("content-type", "application/json");
+    const response = await fetch(`${API}${path}`, { ...init, headers, cache: "no-store" });
+    if (response.status === 401) clearSession();
+    return response;
+  }
+
+  async function login(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    const response = await fetch(`${API}/api/v1/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    setBusy(false);
+
+    if (!response.ok) {
+      setMessage("Check the admin email and password.");
+      return;
+    }
+
+    const data = await response.json();
+    localStorage.setItem("jarvis_token", data.access_token);
+    setToken(data.access_token);
+  }
+
+  async function loadSaved() {
+    const response = await authFetch("/api/v1/sourcing/candidates");
+    if (response.ok) setSaved(await response.json());
+  }
+
+  async function search(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    const response = await authFetch("/api/v1/sourcing/search", {
+      method: "POST",
+      body: JSON.stringify({ keyword, marketplace, country }),
+    });
+    setBusy(false);
+
+    if (!response.ok) {
+      setMessage(`Search failed: ${await response.text()}`);
+      return;
+    }
+
+    setResults(await response.json());
+    setTab("search");
+  }
+
+  async function saveCandidate(candidate: BaseCandidate) {
+    setBusy(true);
+    setMessage("");
+    const response = await authFetch("/api/v1/sourcing/candidates", {
+      method: "POST",
+      body: JSON.stringify(candidateInput(candidate)),
+    });
+    setBusy(false);
+
+    if (response.status === 409) {
+      setMessage("This candidate is already saved.");
+      await loadSaved();
+      setTab("saved");
+      return;
+    }
+    if (!response.ok) {
+      setMessage(`Save failed: ${await response.text()}`);
+      return;
+    }
+
+    setMessage(`${candidate.name} saved.`);
+    await loadSaved();
+    setTab("saved");
+  }
+
+  async function changeStatus(id: number, status: "approved" | "rejected") {
+    setBusy(true);
+    setMessage("");
+    const response = await authFetch(`/api/v1/sourcing/candidates/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+    setBusy(false);
+
+    if (!response.ok) {
+      setMessage(`Status update failed: ${await response.text()}`);
+      return;
+    }
+
+    await loadSaved();
+  }
+
+  const sorted = useMemo(() => {
+    const candidates = [...saved];
+    if (sort === "score") return candidates.sort((a, b) => b.total_score - a.total_score);
+    if (sort === "margin") return candidates.sort((a, b) => b.margin_rate - a.margin_rate);
+    return candidates.sort((a, b) => b.id - a.id);
+  }, [saved, sort]);
+
+  if (!ready) return null;
+
+  if (!token) {
+    return (
+      <main className="login">
+        <form onSubmit={login} className="card login-card">
+          <h1>JARVIS</h1>
+          <p>AI Sourcing MVP</p>
+          <input value={email} onChange={(event) => setEmail(event.target.value)} aria-label="Email" />
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-label="Password"
+          />
+          <button disabled={busy}>{busy ? "Checking..." : "Log in"}</button>
+          {message && <span>{message}</span>}
+        </form>
+      </main>
+    );
+  }
+
+  return (
+    <AppShell
+      active="sourcing"
+      kicker="AI SOURCING"
+      title="Candidate Search"
+      description="Search, score, save, and approve product candidates."
+      onLogout={clearSession}
+    >
+      <form className="card search-bar" onSubmit={search}>
+        <input
+          required
+          placeholder="Product keyword"
+          value={keyword}
+          onChange={(event) => setKeyword(event.target.value)}
+        />
+        <select value={marketplace} onChange={(event) => setMarketplace(event.target.value)}>
+          <option value="coupang">Coupang</option>
+          <option value="naver">Naver</option>
+          <option value="amazon">Amazon</option>
+          <option value="shopee">Shopee</option>
+          <option value="lazada">Lazada</option>
+        </select>
+        <input value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Country" />
+        <button disabled={busy}>{busy ? "Working..." : "Search"}</button>
+      </form>
+
+      <div className="tab-row">
+        <button className={tab === "search" ? "tab active" : "tab"} onClick={() => setTab("search")}>
+          Search Results ({results.length})
+        </button>
+        <button className={tab === "saved" ? "tab active" : "tab"} onClick={() => setTab("saved")}>
+          Saved List ({saved.length})
+        </button>
+      </div>
+
+      {message && <p className="notice">{message}</p>}
+
+      {tab === "saved" && (
+        <div className="saved-toolbar">
+          <span>Saved candidates persist after refresh.</span>
+          <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+            <option value="score">Top score</option>
+            <option value="margin">Top margin</option>
+            <option value="recent">Recent</option>
+          </select>
+        </div>
+      )}
+
+      <section className="results-grid">
+        {tab === "search" &&
+          results.map((candidate) => (
+            <article className="card result-card" key={`${candidate.name}-${candidate.marketplace}`}>
+              <div className="result-top">
+                <div>
+                  <small>
+                    {candidate.marketplace.toUpperCase()} / {candidate.country}
+                  </small>
+                  <h3>{candidate.name}</h3>
+                </div>
+                <div className="score">{candidate.total_score}</div>
+              </div>
+              <div className="stats">
+                <span>
+                  Source <b>{candidate.source_price.toLocaleString()}</b>
+                </span>
+                <span>
+                  Target <b>{candidate.target_price.toLocaleString()}</b>
+                </span>
+                <span>
+                  Profit <b>{candidate.gross_profit.toLocaleString()}</b>
+                </span>
+                <span>
+                  Margin <b>{candidate.margin_rate}%</b>
+                </span>
+              </div>
+              <p>{candidate.explanation}</p>
+              <button className="approve" disabled={busy} onClick={() => void saveCandidate(candidate)}>
+                Save Candidate
+              </button>
+            </article>
+          ))}
+
+        {tab === "saved" &&
+          sorted.map((candidate) => (
+            <article className="card result-card" key={candidate.id}>
+              <div className="result-top">
+                <div>
+                  <small>
+                    {candidate.marketplace.toUpperCase()} / {candidate.country}
+                  </small>
+                  <h3>{candidate.name}</h3>
+                </div>
+                <div className="score">{candidate.total_score}</div>
+              </div>
+              <div className="stats">
+                <span>
+                  Profit <b>{candidate.gross_profit.toLocaleString()}</b>
+                </span>
+                <span>
+                  Margin <b>{candidate.margin_rate}%</b>
+                </span>
+                <span>
+                  Rating <b>{candidate.recommendation}</b>
+                </span>
+                <span>
+                  Status <b>{statusLabel[candidate.status] ?? candidate.status}</b>
+                </span>
+              </div>
+              <p>{candidate.explanation}</p>
+              {candidate.status === "pending" && (
+                <div className="actions">
+                  <button className="approve" disabled={busy} onClick={() => void changeStatus(candidate.id, "approved")}>
+                    Approve
+                  </button>
+                  <button className="reject" disabled={busy} onClick={() => void changeStatus(candidate.id, "rejected")}>
+                    Reject
+                  </button>
+                </div>
+              )}
+            </article>
+          ))}
+
+        {tab === "saved" && sorted.length === 0 && <div className="card empty">No saved candidates yet.</div>}
+      </section>
+    </AppShell>
+  );
 }
