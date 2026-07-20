@@ -12,6 +12,7 @@
 - Added a six-stage operating plan for staging-to-production product development
 - Added a unified command cockpit dashboard and shared application shell across active modules
 - Added the internal Marketplace Adapter contract and regression coverage for future marketplace integrations
+- Added Finance v1 with candidate budget guardrails, loss limits, minimum margin controls and test-order cash planning
 
 ## 1.3.2
 
