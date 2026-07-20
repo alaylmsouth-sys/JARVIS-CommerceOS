@@ -14,6 +14,15 @@ def list_candidates(db:Session=Depends(get_db),_:User=Depends(get_current_user))
     return list(db.scalars(select(SourcingCandidate).order_by(SourcingCandidate.created_at.desc())).all())
 @router.post('/candidates',response_model=CandidateRead,status_code=201)
 def create_candidate(payload:CandidateCreate,db:Session=Depends(get_db),user:User=Depends(get_current_user)):
+    existing = db.scalar(
+        select(SourcingCandidate).where(
+            SourcingCandidate.name == payload.name,
+            SourcingCandidate.marketplace == payload.marketplace,
+            SourcingCandidate.country == payload.country,
+        )
+    )
+    if existing is not None:
+        raise HTTPException(status_code=409, detail='Candidate already exists')
     s=calculate_score(payload)
     c=SourcingCandidate(**payload.model_dump(),total_cost=s.total_cost,gross_profit=s.gross_profit,margin_rate=s.margin_rate,total_score=s.total_score,recommendation=s.recommendation,explanation=s.explanation,status='pending',created_by_id=user.id)
     db.add(c);db.flush();db.add(AuditLog(actor_user_id=user.id,action='candidate.created',entity_type='sourcing_candidate',entity_id=str(c.id),detail=c.name));db.commit();db.refresh(c);return c
