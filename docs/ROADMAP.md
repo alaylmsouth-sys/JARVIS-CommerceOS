@@ -39,13 +39,18 @@
    - `update_price`
    - `stock`
 
+7. Finance v1
+   - Candidate budget guardrails
+   - Loss limit and minimum margin controls
+   - Test-order cash planning
+   - Finance module in the shared cockpit shell
+
 ## Current Next Step
 
-Build Finance v1 so sourcing candidates and projects can be evaluated against cash, budget, loss limits, and margin guardrails.
+Build Commerce v1 so finance-approved candidates can move into listing readiness checks, channel assumptions, and explicit approval gates before any marketplace action.
 
 ## Backlog
 
-- Finance v1: budget, unit economics, test-order limit, loss guardrail
 - Commerce v1: listing readiness checklist and channel assumptions
 - Media Studio v1: content hooks, briefs, and launch copy
 - Real model-backed AI Center provider behind environment-managed secrets
