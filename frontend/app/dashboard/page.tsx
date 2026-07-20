@@ -15,6 +15,7 @@ const steps = [
   "Projects 실사용화",
   "Finance 가드레일",
   "Commerce 운영 모듈",
+  "Media Studio",
   "운영 전환",
 ];
 
@@ -93,7 +94,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <AppShell active="dashboard" kicker="COMMAND COCKPIT" title="JARVIS Dashboard" description="소싱, 프로젝트, AI 직원, 재무 가드레일, 커머스 준비 상태를 한 화면에서 봅니다." onLogout={clearSession}>
+    <AppShell active="dashboard" kicker="COMMAND COCKPIT" title="JARVIS Dashboard" description="소싱, 프로젝트, AI 직원, 재무 가드레일, 커머스와 미디어 준비 상태를 한 화면에서 봅니다." onLogout={clearSession}>
       {message && <p className="notice">{message}</p>}
 
       <section className="metrics">
@@ -110,6 +111,7 @@ export default function DashboardPage() {
             <article className="project-candidate"><h4>1. 후보 정리</h4><p>저장 후보를 검토중, 보류, 선정, 폐기로 나눕니다.</p></article>
             <article className="project-candidate"><h4>2. 재무 가드레일</h4><p>Finance에서 예산, 손실한도, 최소 마진을 통과하는 후보만 추립니다.</p><a className="button-link secondary" href="/finance">Finance 열기</a></article>
             <article className="project-candidate"><h4>3. 상품 등록 준비</h4><p>Commerce에서 체크리스트와 승인 게이트를 확인합니다.</p><a className="button-link secondary" href="/commerce">Commerce 열기</a></article>
+            <article className="project-candidate"><h4>4. 콘텐츠 초안</h4><p>Media Studio에서 상품 브리프와 런칭 카피를 만듭니다.</p><a className="button-link secondary" href="/media">Media 열기</a></article>
           </div>
         </section>
 
@@ -138,11 +140,11 @@ export default function DashboardPage() {
         </section>
 
         <section className="card">
-          <h3>6단계 청사진</h3>
+          <h3>7단계 청사진</h3>
           <div className="project-list">
             {steps.map((item, index) => (
               <div className="project-item" key={item}>
-                <strong>{index + 1}. {item}</strong><span>{index < 5 ? "active" : "planned"}</span>
+                <strong>{index + 1}. {item}</strong><span>{index < 6 ? "active" : "planned"}</span>
               </div>
             ))}
           </div>
