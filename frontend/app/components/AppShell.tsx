@@ -19,8 +19,8 @@ const modules: { key: ModuleKey; label: string; href?: string; status?: string }
   { key: "projects", label: "Projects", href: "/projects" },
   { key: "finance", label: "Finance", href: "/finance" },
   { key: "commerce", label: "Commerce", href: "/commerce" },
+  { key: "media", label: "Media Studio", href: "/media" },
   { key: "ai-center", label: "AI Center", href: "/ai-center" },
-  { key: "media", label: "Media Studio", status: "planned" },
   { key: "trading", label: "Trading", status: "planned" },
   { key: "settings", label: "Settings", status: "planned" },
 ];
