@@ -19,6 +19,7 @@ async def lifespan(_:FastAPI): init_db();yield
 app=FastAPI(title=settings.app_name,version=settings.app_version,lifespan=lifespan)
 app.include_router(auth_router,prefix='/api/v1')
 app.include_router(sourcing_router,prefix='/api/v1')
+app.include_router(projects_router,prefix='/api/v1')
 @app.get('/')
 def root(): return {'service':settings.app_name,'version':settings.app_version,'docs':'/docs'}
 @app.get('/health')
