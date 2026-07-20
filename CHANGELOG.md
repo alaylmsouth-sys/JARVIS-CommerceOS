@@ -13,6 +13,7 @@
 - Added a unified command cockpit dashboard and shared application shell across active modules
 - Added the internal Marketplace Adapter contract and regression coverage for future marketplace integrations
 - Added Finance v1 with candidate budget guardrails, loss limits, minimum margin controls and test-order cash planning
+- Added Commerce v1 with listing readiness checks, channel assumptions and an explicit approval gate before marketplace side effects
 
 ## 1.3.2
 
