@@ -45,13 +45,18 @@
    - Test-order cash planning
    - Finance module in the shared cockpit shell
 
+8. Commerce v1
+   - Listing readiness checklist
+   - Channel assumptions for prepared candidates
+   - Explicit approval gate before marketplace side effects
+   - Commerce module in the shared cockpit shell
+
 ## Current Next Step
 
-Build Commerce v1 so finance-approved candidates can move into listing readiness checks, channel assumptions, and explicit approval gates before any marketplace action.
+Build Media Studio v1 so commerce-ready candidates can move into content hooks, product briefs, and launch copy before any real listing workflow.
 
 ## Backlog
 
-- Commerce v1: listing readiness checklist and channel assumptions
 - Media Studio v1: content hooks, briefs, and launch copy
 - Real model-backed AI Center provider behind environment-managed secrets
 - Coupang adapter implementation
