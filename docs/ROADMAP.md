@@ -51,13 +51,18 @@
    - Explicit approval gate before marketplace side effects
    - Commerce module in the shared cockpit shell
 
+9. Media Studio v1
+   - Product brief generation from saved candidates
+   - Content hooks and launch copy drafts
+   - Tone and channel controls
+   - Publishing approval gate before external side effects
+
 ## Current Next Step
 
-Build Media Studio v1 so commerce-ready candidates can move into content hooks, product briefs, and launch copy before any real listing workflow.
+Build the real AI provider layer for AI Center behind environment-managed secrets, so domain staff can move from deterministic advice to model-backed consultation without exposing keys.
 
 ## Backlog
 
-- Media Studio v1: content hooks, briefs, and launch copy
 - Real model-backed AI Center provider behind environment-managed secrets
 - Coupang adapter implementation
 - Naver adapter implementation
