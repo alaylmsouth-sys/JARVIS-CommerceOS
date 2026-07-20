@@ -14,8 +14,7 @@ const steps = [
   "AI Sourcing 고도화",
   "Projects 실사용화",
   "Finance 가드레일",
-  "Commerce 운영 모듈",
-  "Media Studio",
+  "Commerce/Media 운영 모듈",
   "운영 전환",
 ];
 
@@ -140,11 +139,11 @@ export default function DashboardPage() {
         </section>
 
         <section className="card">
-          <h3>7단계 청사진</h3>
+          <h3>6단계 청사진</h3>
           <div className="project-list">
             {steps.map((item, index) => (
               <div className="project-item" key={item}>
-                <strong>{index + 1}. {item}</strong><span>{index < 6 ? "active" : "planned"}</span>
+                <strong>{index + 1}. {item}</strong><span>{index < 5 ? "active" : "planned"}</span>
               </div>
             ))}
           </div>
