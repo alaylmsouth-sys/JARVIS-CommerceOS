@@ -1,27 +1,71 @@
-# JARVIS-CommerceOS Foundation v1.0
+# JARVIS-CommerceOS
 
-안정적인 장기 확장을 위한 기반 버전입니다.
+JARVIS-CommerceOS is a personal AI operating system for commerce workflows. The current release focus is the AI Sourcing MVP. Other modules remain planned and should not be expanded in this phase.
 
-## 포함 기능
-- FastAPI + PostgreSQL + Redis
-- JWT 로그인
-- AI Sourcing 후보 등록/조회
-- 마진 및 점수 계산
-- 승인/거절 워크플로우
-- 감사 로그
-- Next.js 탭형 대시보드
-- Docker Compose 및 GitHub Actions
+## MVP Scope
 
-## 실행
+Completed in this branch:
+
+- JWT admin login
+- AI Sourcing search
+- Candidate scoring and margin calculation
+- Candidate save and duplicate protection
+- Saved candidate list persistence
+- Candidate approve/reject status flow
+- Project creation
+- Candidate assignment to projects
+- Project-specific candidate lookup
+- Marketplace Adapter contract only
+
+Not included in this MVP:
+
+- Live Coupang, Naver, Amazon, Shopee, or Lazada integrations
+- Automatic marketplace listing
+- Paid AI model workflow
+- New modules outside AI Sourcing and Projects
+
+## Local Run
+
 ```bash
 cp .env.example .env
-docker compose down -v
 docker compose up --build
 ```
 
-- Dashboard: http://localhost:3000
-- API: http://localhost:8001
-- Swagger: http://localhost:8001/docs
-- Health: http://localhost:8001/health
+Default app URLs:
 
-기본 로그인: `admin@jarvis.local` / `change-me-now`
+- Frontend: `http://localhost:3000`
+- API: `http://localhost:8001`
+- Swagger: `http://localhost:8001/docs`
+- Health: `http://localhost:8001/health`
+
+Default local login:
+
+- Email: `admin@jarvis.local`
+- Password: `change-me-now`
+
+## Validation
+
+Backend:
+
+```bash
+cd backend
+python -m pytest -q
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+Latest MVP validation:
+
+- Backend tests: `8 passed`
+- Frontend Next build: passed
+- API smoke: login, search, save, duplicate rejection, approve, reject, project create, attach, and project lookup passed
+
+## Current Rule
+
+No new feature expansion until the AI Sourcing MVP is merged and deploy-smoked. New ideas should go to backlog.
