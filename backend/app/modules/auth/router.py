@@ -9,5 +9,6 @@ router=APIRouter(prefix='/auth',tags=['auth'])
 @router.post('/login',response_model=TokenResponse)
 def login(payload:LoginRequest,db:Session=Depends(get_db)):
     user=db.scalar(select(User).where(User.email==payload.email))
-    if user is None or not verify_password(payload.password,user.hashed_password): raise HTTPException(status_code=401,detail='Invalid email or password')
+    if user is None or not user.is_active or not verify_password(payload.password,user.hashed_password):
+        raise HTTPException(status_code=401,detail='Invalid email or password')
     return TokenResponse(access_token=create_access_token(user.email))

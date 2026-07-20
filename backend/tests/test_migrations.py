@@ -21,6 +21,18 @@ def test_migrations_create_baseline_schema() -> None:
         assert BASELINE_TABLES.issubset(table_names)
         assert "alembic_version" in table_names
 
+        inspector = inspect(engine)
+        candidate_constraints = {
+            constraint["name"]
+            for constraint in inspector.get_unique_constraints("sourcing_candidates")
+        }
+        project_candidate_constraints = {
+            constraint["name"]
+            for constraint in inspector.get_unique_constraints("project_candidates")
+        }
+        assert "uq_sourcing_candidate_identity" in candidate_constraints
+        assert "uq_project_candidate" in project_candidate_constraints
+
         main()
     finally:
         Base.metadata.drop_all(bind=engine)

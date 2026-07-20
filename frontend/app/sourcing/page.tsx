@@ -8,7 +8,7 @@ type CandidateStatus="pending"|"reviewing"|"on_hold"|"approved"|"rejected"|"sele
 type BaseCandidate={name:string;marketplace:string;country:string;source_price:number;target_price:number;shipping_cost:number;platform_fee_rate:number;ad_cost_rate:number;competition_score:number;trend_score:number;brand_score:number;total_cost:number;gross_profit:number;margin_rate:number;total_score:number;recommendation:string;explanation:string};
 type SavedCandidate=BaseCandidate&{id:number;status:CandidateStatus;notes:string;tags:string};
 type ReviewDraft={status:CandidateStatus;notes:string;tags:string};
-const statusLabels:Record<CandidateStatus,string>={pending:"대기",reviewing:"검토중",on_hold:"보류",approved:"승인",rejected:"폐기",selected:"선정",linked:"프로젝트 연결"};
+const statusLabels:Record<CandidateStatus,string>={pending:"대기",reviewing:"검토중",on_hold:"보류",approved:"승인",rejected:"거절",selected:"선정",linked:"프로젝트 연결"};
 const statusOptions=Object.entries(statusLabels) as [CandidateStatus,string][];
 
 export default function SourcingPage(){

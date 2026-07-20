@@ -67,6 +67,107 @@ def test_duplicate_candidate_is_rejected() -> None:
         assert second.status_code == 409
 
 
+def test_candidate_search_scoring_status_and_persistence() -> None:
+    with TestClient(app) as client:
+        headers = login_headers(client)
+        searched = client.post(
+            "/api/v1/sourcing/search",
+            headers=headers,
+            json={"keyword": "휴대용 선풍기", "marketplace": "coupang", "country": "kr"},
+        )
+        assert searched.status_code == 200
+        suggestions = searched.json()
+        assert suggestions
+        assert suggestions == sorted(
+            suggestions,
+            key=lambda item: item["total_score"],
+            reverse=True,
+        )
+
+        suggestion = suggestions[0]
+        created = client.post(
+            "/api/v1/sourcing/candidates",
+            headers=headers,
+            json={
+                key: suggestion[key]
+                for key in (
+                    "name",
+                    "marketplace",
+                    "country",
+                    "source_price",
+                    "target_price",
+                    "shipping_cost",
+                    "platform_fee_rate",
+                    "ad_cost_rate",
+                    "competition_score",
+                    "trend_score",
+                    "brand_score",
+                )
+            },
+        )
+        assert created.status_code == 201
+        candidate = created.json()
+        expected_cost = (
+            candidate["source_price"]
+            + candidate["shipping_cost"]
+            + candidate["target_price"]
+            * (candidate["platform_fee_rate"] + candidate["ad_cost_rate"])
+            / 100
+        )
+        assert candidate["total_cost"] == round(expected_cost, 2)
+        assert candidate["gross_profit"] == round(
+            candidate["target_price"] - expected_cost,
+            2,
+        )
+
+        candidate_id = candidate["id"]
+        approved = client.patch(
+            f"/api/v1/sourcing/candidates/{candidate_id}/status",
+            headers=headers,
+            json={"status": "approved"},
+        )
+        assert approved.status_code == 200
+        assert approved.json()["status"] == "approved"
+
+        rejected = client.patch(
+            f"/api/v1/sourcing/candidates/{candidate_id}/status",
+            headers=headers,
+            json={"status": "rejected"},
+        )
+        assert rejected.status_code == 200
+        assert rejected.json()["status"] == "rejected"
+
+    with TestClient(app) as client:
+        persisted = client.get(
+            "/api/v1/sourcing/candidates",
+            headers=login_headers(client),
+        )
+        assert persisted.status_code == 200
+        assert persisted.json()[0]["id"] == candidate_id
+        assert persisted.json()[0]["status"] == "rejected"
+
+
+def test_candidate_identity_is_normalized_before_duplicate_check() -> None:
+    with TestClient(app) as client:
+        headers = login_headers(client)
+        first = client.post(
+            "/api/v1/sourcing/candidates",
+            headers=headers,
+            json=candidate_payload("Portable   Blender"),
+        )
+        duplicate_payload = candidate_payload(" Portable Blender ")
+        duplicate_payload["country"] = "us"
+        duplicate = client.post(
+            "/api/v1/sourcing/candidates",
+            headers=headers,
+            json=duplicate_payload,
+        )
+
+        assert first.status_code == 201
+        assert first.json()["name"] == "Portable Blender"
+        assert duplicate.status_code == 409
+
+
 def test_update_candidate_review_metadata() -> None:
     with TestClient(app) as client:
         headers = login_headers(client)

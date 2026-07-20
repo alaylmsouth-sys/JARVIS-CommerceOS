@@ -1,5 +1,5 @@
 from datetime import datetime,timezone
-from sqlalchemy import Boolean,DateTime,Float,ForeignKey,Integer,String,Text
+from sqlalchemy import Boolean,DateTime,Float,ForeignKey,Integer,String,Text,UniqueConstraint
 from sqlalchemy.orm import Mapped,mapped_column
 from app.db.base import Base
 def utcnow(): return datetime.now(timezone.utc)
@@ -12,6 +12,14 @@ class User(Base):
     is_active:Mapped[bool]=mapped_column(Boolean,default=True)
 class SourcingCandidate(Base):
     __tablename__='sourcing_candidates'
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+            "marketplace",
+            "country",
+            name="uq_sourcing_candidate_identity",
+        ),
+    )
     id:Mapped[int]=mapped_column(Integer,primary_key=True)
     name:Mapped[str]=mapped_column(String(200),index=True)
     marketplace:Mapped[str]=mapped_column(String(40),index=True)
@@ -62,6 +70,13 @@ class Project(Base):
 
 class ProjectCandidate(Base):
     __tablename__ = "project_candidates"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id",
+            "candidate_id",
+            name="uq_project_candidate",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
