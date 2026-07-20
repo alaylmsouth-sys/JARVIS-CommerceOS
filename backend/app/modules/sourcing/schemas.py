@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel,ConfigDict,Field
+from pydantic import BaseModel,ConfigDict,Field,field_validator
 CandidateStatus = Literal['pending','reviewing','on_hold','approved','rejected','selected','linked']
 class CandidateCreate(BaseModel):
     name:str=Field(min_length=2,max_length=200)
     marketplace:Literal['coupang','naver','amazon','shopee','lazada']
-    country:str='KR'
+    country:str=Field(default='KR',min_length=2,max_length=10)
     source_price:float=Field(gt=0)
     target_price:float=Field(gt=0)
     shipping_cost:float=Field(default=0,ge=0)
@@ -14,6 +14,22 @@ class CandidateCreate(BaseModel):
     competition_score:float=Field(ge=0,le=100)
     trend_score:float=Field(ge=0,le=100)
     brand_score:float=Field(ge=0,le=100)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if len(value) < 2:
+            raise ValueError("name must contain at least two characters")
+        return value
+
+    @field_validator("country")
+    @classmethod
+    def normalize_country(cls, value: str) -> str:
+        value = value.strip().upper()
+        if len(value) < 2:
+            raise ValueError("country must contain at least two characters")
+        return value
 class CandidateRead(BaseModel):
     model_config=ConfigDict(from_attributes=True)
     id:int;name:str;marketplace:str;country:str;source_price:float;target_price:float;shipping_cost:float;platform_fee_rate:float;ad_cost_rate:float;competition_score:float;trend_score:float;brand_score:float;total_cost:float;gross_profit:float;margin_rate:float;total_score:float;recommendation:str;explanation:str;status:str;notes:str;tags:str;created_at:datetime;updated_at:datetime

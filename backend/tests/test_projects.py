@@ -53,9 +53,24 @@ def test_project_candidate_workflow() -> None:
         )
         assert attached.status_code == 204
 
+        duplicate_attachment = client.post(
+            f"/api/v1/projects/{project_id}/candidates",
+            headers=headers,
+            json={"candidate_id": candidate.json()["id"]},
+        )
+        assert duplicate_attachment.status_code == 409
+
         listed = client.get(
             f"/api/v1/projects/{project_id}/candidates",
             headers=headers,
         )
         assert listed.status_code == 200
         assert [item["name"] for item in listed.json()] == ["Camping Fan"]
+
+    with TestClient(app) as client:
+        persisted = client.get(
+            f"/api/v1/projects/{project_id}/candidates",
+            headers=auth_headers(client),
+        )
+        assert persisted.status_code == 200
+        assert [item["name"] for item in persisted.json()] == ["Camping Fan"]

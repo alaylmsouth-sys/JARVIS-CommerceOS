@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import Project, ProjectCandidate, SourcingCandidate, User
@@ -41,7 +42,11 @@ def create_project(
         created_by_id=current_user.id,
     )
     db.add(project)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Duplicate project") from error
     db.refresh(project)
     return project
 
@@ -93,7 +98,11 @@ def attach_candidate(
             candidate_id=payload.candidate_id,
         )
     )
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Candidate already attached") from error
 
 
 @router.get("/{project_id}/candidates", response_model=list[CandidateRead])
