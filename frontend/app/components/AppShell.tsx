@@ -17,10 +17,10 @@ const modules: { key: ModuleKey; label: string; href?: string; status?: string }
   { key: "dashboard", label: "Dashboard", href: "/dashboard" },
   { key: "sourcing", label: "AI Sourcing", href: "/sourcing" },
   { key: "projects", label: "Projects", href: "/projects" },
+  { key: "finance", label: "Finance", href: "/finance" },
   { key: "ai-center", label: "AI Center", href: "/ai-center" },
   { key: "commerce", label: "Commerce", status: "planned" },
   { key: "media", label: "Media Studio", status: "planned" },
-  { key: "finance", label: "Finance", status: "planned" },
   { key: "trading", label: "Trading", status: "planned" },
   { key: "settings", label: "Settings", status: "planned" },
 ];
