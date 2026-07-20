@@ -13,8 +13,8 @@ const steps = [
   "기반 안정화",
   "AI Sourcing 고도화",
   "Projects 실사용화",
+  "Finance 가드레일",
   "Commerce 운영 모듈",
-  "Media, Finance, Trading 확장",
   "운영 전환",
 ];
 
@@ -72,6 +72,10 @@ export default function DashboardPage() {
     () => candidates.filter((item) => ["pending", "reviewing", "on_hold"].includes(item.status)).length,
     [candidates],
   );
+  const financeReadyCount = useMemo(
+    () => candidates.filter((item) => item.margin_rate >= 25 && ["selected", "linked", "approved"].includes(item.status)).length,
+    [candidates],
+  );
   const topCandidates = [...candidates].sort((a, b) => b.total_score - a.total_score).slice(0, 4);
 
   if (!ready) return null;
@@ -89,14 +93,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <AppShell active="dashboard" kicker="COMMAND COCKPIT" title="JARVIS Dashboard" description="소싱, 프로젝트, AI 직원, 운영 전환 상태를 한 화면에서 봅니다." onLogout={clearSession}>
+    <AppShell active="dashboard" kicker="COMMAND COCKPIT" title="JARVIS Dashboard" description="소싱, 프로젝트, AI 직원, 재무 가드레일, 운영 전환 상태를 한 화면에서 봅니다." onLogout={clearSession}>
       {message && <p className="notice">{message}</p>}
 
       <section className="metrics">
         <article><span>저장 후보</span><strong>{candidates.length}</strong></article>
         <article><span>검토 중</span><strong>{reviewCount}</strong></article>
         <article><span>선정 후보</span><strong>{selectedCount}</strong></article>
-        <article><span>프로젝트</span><strong>{projects.length}</strong></article>
+        <article><span>재무 검토 가능</span><strong>{financeReadyCount}</strong></article>
       </section>
 
       <div className="dashboard-grid">
@@ -104,8 +108,8 @@ export default function DashboardPage() {
           <h3>다음 행동</h3>
           <div className="project-candidate-list">
             <article className="project-candidate"><h4>1. 후보 정리</h4><p>저장 후보를 검토중, 보류, 선정, 폐기로 나눕니다.</p></article>
-            <article className="project-candidate"><h4>2. 프로젝트 연결</h4><p>선정 후보만 Projects에 연결해 실행 단위를 줄입니다.</p></article>
-            <article className="project-candidate"><h4>3. AI 직원 상담</h4><p>Operations나 Finance에게 다음 리스크를 물어봅니다.</p></article>
+            <article className="project-candidate"><h4>2. 재무 가드레일</h4><p>Finance에서 예산, 손실한도, 최소 마진을 통과하는 후보만 추립니다.</p><a className="button-link secondary" href="/finance">Finance 열기</a></article>
+            <article className="project-candidate"><h4>3. 프로젝트 연결</h4><p>재무 조건을 통과한 후보만 Projects에 연결해 실행 단위를 줄입니다.</p></article>
           </div>
         </section>
 
@@ -138,7 +142,7 @@ export default function DashboardPage() {
           <div className="project-list">
             {steps.map((item, index) => (
               <div className="project-item" key={item}>
-                <strong>{index + 1}. {item}</strong><span>{index < 3 ? "active" : "planned"}</span>
+                <strong>{index + 1}. {item}</strong><span>{index < 4 ? "active" : "planned"}</span>
               </div>
             ))}
           </div>
