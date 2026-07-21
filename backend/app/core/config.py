@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import field_validator, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     access_token_minutes: int = 1440
     default_admin_email: str = "admin@jarvis.example.com"
     default_admin_password: str = "change-me-now"
+    ai_provider: Literal["deterministic", "openai"] = "deterministic"
+    openai_api_key: SecretStr | None = None
+    openai_model: str = "gpt-5.6-luna"
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_timeout_seconds: float = 20.0
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -32,6 +37,12 @@ class Settings(BaseSettings):
         if value.startswith("postgresql://"):
             return value.replace("postgresql://", "postgresql+psycopg://", 1)
         return value
+
+    @model_validator(mode="after")
+    def validate_provider_settings(self) -> "Settings":
+        if self.ai_provider == "openai" and self.openai_api_key is None:
+            raise ValueError("OPENAI_API_KEY is required when AI_PROVIDER=openai")
+        return self
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
