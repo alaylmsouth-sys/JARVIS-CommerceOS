@@ -15,6 +15,7 @@
 - Added Finance v1 with candidate budget guardrails, loss limits, minimum margin controls and test-order cash planning
 - Added Commerce v1 with listing readiness checks, channel assumptions and an explicit approval gate before marketplace side effects
 - Added Media Studio v1 with product briefs, content hooks, launch copy drafts and publishing approval gates
+- Added an environment-managed OpenAI provider layer for AI Center with deterministic fallback behavior
 
 ## 1.3.2
 
