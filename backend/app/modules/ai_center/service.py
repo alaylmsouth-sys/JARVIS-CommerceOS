@@ -132,7 +132,7 @@ def get_staff(staff_id: str) -> AIStaff | None:
     return STAFF.get(staff_id)
 
 
-def build_reply(staff: AIStaff, message: str, context: str = "") -> tuple[str, list[str]]:
+def build_deterministic_reply(staff: AIStaff, message: str, context: str = "") -> tuple[str, list[str]]:
     normalized = message.strip()
     context_line = f"\n\n현재 맥락: {context.strip()}" if context.strip() else ""
     actions = list(staff.default_actions)
@@ -167,3 +167,17 @@ def build_reply(staff: AIStaff, message: str, context: str = "") -> tuple[str, l
         f"작업 방식: {staff.operating_style}"
     )
     return reply, actions
+
+
+def build_reply(staff: AIStaff, message: str, context: str = "") -> tuple[str, list[str]]:
+    reply, actions = build_deterministic_reply(staff, message, context)
+
+    from app.modules.ai_center.provider import AIProviderError, build_openai_reply, provider_enabled
+
+    if not provider_enabled():
+        return reply, actions
+
+    try:
+        return build_openai_reply(staff, message, context), actions
+    except (AIProviderError, OSError, ValueError):
+        return reply, actions
