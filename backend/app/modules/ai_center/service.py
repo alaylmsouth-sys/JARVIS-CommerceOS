@@ -172,12 +172,12 @@ def build_deterministic_reply(staff: AIStaff, message: str, context: str = "") -
 def build_reply(staff: AIStaff, message: str, context: str = "") -> tuple[str, list[str]]:
     reply, actions = build_deterministic_reply(staff, message, context)
 
-    from app.modules.ai_center.provider import AIProviderError, build_openai_reply, provider_enabled
+    from app.modules.ai_center.provider import build_openai_reply, provider_enabled
 
     if not provider_enabled():
         return reply, actions
 
     try:
         return build_openai_reply(staff, message, context), actions
-    except (AIProviderError, OSError, ValueError):
+    except Exception:
         return reply, actions
