@@ -27,6 +27,8 @@
    - Deterministic domain AI staff
    - Staff consultation endpoint
    - Staff chat workspace
+   - Environment-managed OpenAI provider layer
+   - Deterministic fallback when the provider is disabled or unavailable
 
 5. Command Cockpit
    - `/dashboard` unified cockpit
@@ -59,11 +61,10 @@
 
 ## Current Next Step
 
-Build the real AI provider layer for AI Center behind environment-managed secrets, so domain staff can move from deterministic advice to model-backed consultation without exposing keys.
+Build the first real marketplace adapter implementation behind explicit user approval gates, starting with a read-only search adapter before upload, price or stock actions.
 
 ## Backlog
 
-- Real model-backed AI Center provider behind environment-managed secrets
 - Coupang adapter implementation
 - Naver adapter implementation
 - Amazon adapter implementation

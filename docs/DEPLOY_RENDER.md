@@ -32,6 +32,21 @@ web service plans, replace the public backend connection with Render private
 networking, and configure backups. Review the displayed monthly cost in Render
 before applying those changes.
 
+## AI Center provider
+
+AI Center uses deterministic staff replies by default. To enable model-backed
+staff consultation on Render, set the following API service environment values:
+
+- `AI_PROVIDER=openai`
+- `OPENAI_API_KEY` as a Render secret value
+- `OPENAI_MODEL` to the approved model for the account
+
+Do not paste `OPENAI_API_KEY` into GitHub, source code, documentation, issue
+comments, deployment logs, or chat. If `AI_PROVIDER=openai` is set without
+`OPENAI_API_KEY`, the API fails fast during settings validation. If the OpenAI
+request fails at runtime, AI Center falls back to the deterministic staff reply
+so the authenticated workflow remains usable.
+
 ## Database migrations
 
 The API image runs `python -m app.db.migrate` before starting Uvicorn. That
@@ -56,6 +71,7 @@ Before adding future schema-changing revisions:
 3. Search for a sourcing candidate and save it.
 4. Create a project, attach the candidate, and reload the project page.
 5. Confirm the candidate remains attached after the reload.
+6. Open AI Center and confirm staff chat works with deterministic or model-backed replies depending on `AI_PROVIDER`.
 
 ## Deploy and rollback
 
