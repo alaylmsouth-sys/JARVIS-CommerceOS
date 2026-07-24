@@ -1,6 +1,12 @@
+import hashlib
+import hmac
+
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from app.main import app
+from app.modules.sourcing import coupang, search as search_service
+from app.modules.sourcing.schemas import CandidateCreate
 
 
 def login_headers(client: TestClient) -> dict[str, str]:
@@ -198,3 +204,49 @@ def test_update_candidate_review_metadata() -> None:
         listed = client.get("/api/v1/sourcing/candidates", headers=headers)
         assert listed.status_code == 200
         assert listed.json()[0]["notes"] == "Supplier price needs confirmation."
+
+
+def test_coupang_authorization_uses_hex_hmac(monkeypatch) -> None:
+    monkeypatch.setattr(coupang.settings, "coupang_access_key", SecretStr("access"))
+    monkeypatch.setattr(coupang.settings, "coupang_secret_key", SecretStr("secret"))
+    signed_date = "260724T010203Z"
+    message = f"{signed_date}GET/patha=1"
+    expected = hmac.new(b"secret", message.encode(), hashlib.sha256).hexdigest()
+
+    header = coupang.authorization("GET", "/path", "a=1", signed_date)
+
+    assert "access-key=access" in header
+    assert f"signature={expected}" in header
+
+
+def test_coupang_search_results_are_used_when_available(monkeypatch) -> None:
+    adapter_candidate = CandidateCreate(
+        name="실제 쿠팡 선풍기",
+        marketplace="coupang",
+        country="KR",
+        source_price=10000,
+        target_price=25000,
+        shipping_cost=3000,
+        platform_fee_rate=12,
+        ad_cost_rate=5,
+        competition_score=55,
+        trend_score=65,
+        brand_score=60,
+    )
+    monkeypatch.setattr(search_service, "search_coupang", lambda keyword: [adapter_candidate])
+
+    results = search_service.search_candidates("선풍기", "coupang", "KR")
+
+    assert results[0]["name"] == "실제 쿠팡 선풍기"
+
+
+def test_coupang_search_falls_back_when_adapter_fails(monkeypatch) -> None:
+    def fail(_: str) -> list[CandidateCreate]:
+        raise RuntimeError("no network")
+
+    monkeypatch.setattr(search_service, "search_coupang", fail)
+
+    results = search_service.search_candidates("선풍기", "coupang", "KR")
+
+    assert results
+    assert results[0]["marketplace"] == "coupang"

@@ -1,4 +1,5 @@
 from hashlib import sha256
+from app.modules.sourcing.coupang import search_coupang
 from app.modules.sourcing.schemas import CandidateCreate
 from app.modules.sourcing.scoring import calculate_score
 
@@ -27,7 +28,14 @@ def stable(keyword: str, index: int, low: int, high: int) -> int:
     value = int(sha256(f"{keyword}:{index}".encode()).hexdigest()[:8], 16)
     return low + value % (high - low + 1)
 
-def search_candidates(keyword: str, marketplace: str, country: str) -> list[dict]:
+def score_results(payloads: list[CandidateCreate]) -> list[dict]:
+    results = []
+    for payload in payloads:
+        score = calculate_score(payload)
+        results.append({**payload.model_dump(), **score.__dict__})
+    return sorted(results, key=lambda x: x["total_score"], reverse=True)
+
+def catalog_candidates(keyword: str, marketplace: str, country: str) -> list[CandidateCreate]:
     normalized = keyword.strip().lower()
     rows = next((items for key, items in CATALOG.items() if key in normalized), None)
     if rows is None:
@@ -43,14 +51,22 @@ def search_candidates(keyword: str, marketplace: str, country: str) -> list[dict
                 stable(normalized, i + 50, 45, 85),
             ))
 
-    results = []
-    for name, source, target, shipping, competition, trend, brand in rows:
-        payload = CandidateCreate(
+    return [
+        CandidateCreate(
             name=name, marketplace=marketplace, country=country,
             source_price=source, target_price=target, shipping_cost=shipping,
             platform_fee_rate=12, ad_cost_rate=5,
             competition_score=competition, trend_score=trend, brand_score=brand,
         )
-        score = calculate_score(payload)
-        results.append({**payload.model_dump(), **score.__dict__})
-    return sorted(results, key=lambda x: x["total_score"], reverse=True)
+        for name, source, target, shipping, competition, trend, brand in rows
+    ]
+
+def search_candidates(keyword: str, marketplace: str, country: str) -> list[dict]:
+    if marketplace == "coupang" and country.upper() == "KR":
+        try:
+            adapter_results = search_coupang(keyword)
+        except Exception:
+            adapter_results = []
+        if adapter_results:
+            return score_results(adapter_results)
+    return score_results(catalog_candidates(keyword, marketplace, country))
