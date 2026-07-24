@@ -47,6 +47,23 @@ comments, deployment logs, or chat. If `AI_PROVIDER=openai` is set without
 request fails at runtime, AI Center falls back to the deterministic staff reply
 so the authenticated workflow remains usable.
 
+## Coupang read-only search
+
+AI Sourcing uses internal deterministic candidates by default. To let Coupang
+search call the read-only seller product query, set the following API service
+environment values:
+
+- `COUPANG_ACCESS_KEY` as a Render secret value
+- `COUPANG_SECRET_KEY` as a Render secret value
+- `COUPANG_VENDOR_ID`
+
+Do not paste Coupang keys into GitHub, source code, documentation, issue
+comments, deployment logs, or chat. This integration only attempts read-only
+search. Upload, price update and stock actions remain unavailable until an
+explicit approval-gated implementation exists. If Coupang credentials are
+missing or the request fails, AI Sourcing falls back to deterministic candidate
+search.
+
 ## Database migrations
 
 The API image runs `python -m app.db.migrate` before starting Uvicorn. That
