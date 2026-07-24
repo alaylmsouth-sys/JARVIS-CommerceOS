@@ -59,13 +59,18 @@
    - Tone and channel controls
    - Publishing approval gate before external side effects
 
+10. Coupang read-only search v1
+   - HMAC-signed Coupang seller product query adapter
+   - Environment-managed Coupang credentials
+   - Deterministic fallback when credentials are missing or unavailable
+   - No upload, price or stock side effects
+
 ## Current Next Step
 
-Build the first real marketplace adapter implementation behind explicit user approval gates, starting with a read-only search adapter before upload, price or stock actions.
+Add explicit approval-gated marketplace action stubs for upload, price and stock so the UI can show what is blocked before real side effects are implemented.
 
 ## Backlog
 
-- Coupang adapter implementation
 - Naver adapter implementation
 - Amazon adapter implementation
 - Shopee adapter implementation
