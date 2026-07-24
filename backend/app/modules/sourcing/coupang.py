@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 from datetime import datetime, timezone
@@ -23,12 +22,11 @@ def authorization(method: str, path: str, query: str, signed_date: str) -> str:
     if settings.coupang_access_key is None or settings.coupang_secret_key is None:
         raise ValueError("Coupang credentials are not configured")
     message = f"{signed_date}{method.upper()}{path}{query}"
-    digest = hmac.new(
+    signature = hmac.new(
         settings.coupang_secret_key.get_secret_value().encode(),
         message.encode(),
         hashlib.sha256,
-    ).digest()
-    signature = base64.b64encode(digest).decode()
+    ).hexdigest()
     return (
         "CEA algorithm=HmacSHA256, "
         f"access-key={settings.coupang_access_key.get_secret_value()}, "
