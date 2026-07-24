@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-5.6-luna"
     openai_base_url: str = "https://api.openai.com/v1"
     openai_timeout_seconds: float = 20.0
+    coupang_access_key: SecretStr | None = None
+    coupang_secret_key: SecretStr | None = None
+    coupang_vendor_id: str = ""
+    coupang_base_url: str = "https://api-gateway.coupang.com"
+    coupang_timeout_seconds: float = 10.0
 
     model_config = SettingsConfigDict(
         env_file=".env",
