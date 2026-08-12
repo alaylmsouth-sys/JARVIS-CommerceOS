@@ -84,3 +84,27 @@ class ProjectCandidate(Base):
         ForeignKey("sourcing_candidates.id"), index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CommerceChecklist(Base):
+    __tablename__ = "commerce_checklists"
+    __table_args__ = (
+        UniqueConstraint("candidate_id", name="uq_commerce_checklist_candidate"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    candidate_id: Mapped[int] = mapped_column(
+        ForeignKey("sourcing_candidates.id"), index=True
+    )
+    copy_ready: Mapped[bool] = mapped_column(Boolean, default=False)
+    images_ready: Mapped[bool] = mapped_column(Boolean, default=False)
+    supplier_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    inventory_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    pricing_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    policy_checked: Mapped[bool] = mapped_column(Boolean, default=False)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
