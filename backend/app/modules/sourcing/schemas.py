@@ -38,3 +38,19 @@ class CandidateReviewUpdate(BaseModel):
     status:CandidateStatus
     notes:str=Field(default='',max_length=5000)
     tags:str=Field(default='',max_length=500)
+
+
+class CommerceChecklistUpdate(BaseModel):
+    copy_ready: bool = False
+    images_ready: bool = False
+    supplier_confirmed: bool = False
+    inventory_confirmed: bool = False
+    pricing_confirmed: bool = False
+    policy_checked: bool = False
+    notes: str = Field(default="", max_length=5000)
+
+
+class CommerceChecklistRead(CommerceChecklistUpdate):
+    model_config = ConfigDict(from_attributes=True)
+    candidate_id: int
+    updated_at: datetime | None = None

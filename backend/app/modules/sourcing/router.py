@@ -2,9 +2,9 @@ from fastapi import APIRouter,Depends,HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.db.models import AuditLog,SourcingCandidate,User
+from app.db.models import AuditLog,CommerceChecklist,SourcingCandidate,User
 from app.db.session import get_db
-from app.modules.sourcing.schemas import CandidateCreate,CandidateRead,CandidateReviewUpdate,CandidateStatusUpdate
+from app.modules.sourcing.schemas import CandidateCreate,CandidateRead,CandidateReviewUpdate,CandidateStatusUpdate,CommerceChecklistRead,CommerceChecklistUpdate
 from app.modules.sourcing.scoring import calculate_score
 from app.modules.sourcing.search import search_candidates
 from app.modules.sourcing.search_schemas import SearchCandidate, SearchRequest
@@ -50,6 +50,51 @@ def update_review(candidate_id:int,payload:CandidateReviewUpdate,db:Session=Depe
     c.tags=payload.tags.strip()
     db.add(AuditLog(actor_user_id=user.id,action='candidate.review.updated',entity_type='sourcing_candidate',entity_id=str(c.id),detail=f'{c.name} -> {c.status}'))
     db.commit();db.refresh(c);return c
+
+
+@router.get('/checklists', response_model=list[CommerceChecklistRead])
+def list_checklists(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    return list(db.scalars(select(CommerceChecklist).order_by(CommerceChecklist.updated_at.desc())).all())
+
+
+@router.put('/candidates/{candidate_id}/checklist', response_model=CommerceChecklistRead)
+def update_checklist(candidate_id: int, payload: CommerceChecklistUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    candidate = db.get(SourcingCandidate, candidate_id)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail='Candidate not found')
+
+    checklist = db.scalar(
+        select(CommerceChecklist).where(CommerceChecklist.candidate_id == candidate_id)
+    )
+    values = payload.model_dump()
+    if checklist is None:
+        checklist = CommerceChecklist(
+            candidate_id=candidate_id,
+            created_by_id=user.id,
+            **values,
+        )
+        db.add(checklist)
+    else:
+        for field, value in values.items():
+            setattr(checklist, field, value)
+
+    completed = sum(
+        bool(values[field])
+        for field in (
+            'copy_ready', 'images_ready', 'supplier_confirmed',
+            'inventory_confirmed', 'pricing_confirmed', 'policy_checked',
+        )
+    )
+    db.add(AuditLog(
+        actor_user_id=user.id,
+        action='candidate.checklist.updated',
+        entity_type='sourcing_candidate',
+        entity_id=str(candidate_id),
+        detail=f'{candidate.name}: {completed}/6 manual checks complete',
+    ))
+    db.commit()
+    db.refresh(checklist)
+    return checklist
 
 
 @router.post("/search", response_model=list[SearchCandidate])
