@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-type ModuleKey = "dashboard" | "sourcing" | "projects" | "ai-center" | "commerce" | "trading" | "media" | "finance" | "settings";
+type ModuleKey = "dashboard" | "sourcing" | "compare" | "projects" | "ai-center" | "commerce" | "trading" | "media" | "finance" | "settings";
 
 type AppShellProps = {
   active: ModuleKey;
@@ -16,6 +16,7 @@ type AppShellProps = {
 const modules: { key: ModuleKey; label: string; hint: string; href?: string; status?: string }[] = [
   { key: "dashboard", label: "한눈에 보기", hint: "오늘 할 일", href: "/dashboard" },
   { key: "sourcing", label: "상품 후보 찾기", hint: "1단계", href: "/sourcing" },
+  { key: "compare", label: "후보 비교", hint: "결정하기", href: "/compare" },
   { key: "projects", label: "프로젝트 관리", hint: "2단계", href: "/projects" },
   { key: "finance", label: "수익성 점검", hint: "3단계", href: "/finance" },
   { key: "commerce", label: "판매 준비", hint: "4단계", href: "/commerce" },
