@@ -44,7 +44,12 @@ def main() -> None:
         "deployment-config",
     ]
     assert "refs/heads/main" in deploy["if"]
+    assert set(deploy["env"]) == {
+        "RENDER_DEPLOY_HOOK_API",
+        "RENDER_DEPLOY_HOOK_WEB",
+    }
     assert len(deploy["steps"]) == 3
+    assert all("secrets." not in step.get("if", "") for step in deploy["steps"])
 
     print("Deployment YAML validation passed.")
 

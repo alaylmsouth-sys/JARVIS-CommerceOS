@@ -51,17 +51,16 @@ jobs:
     # render.yaml의 checksPass 자동 배포를 기본값으로 사용합니다. 훅 방식을 택할 때만 저장소 변수로 활성화합니다.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.RENDER_DEPLOY_HOOKS_ENABLED == 'true'
     runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+      RENDER_DEPLOY_HOOK_WEB: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
     steps:
       - name: Trigger API deployment
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_API != '' }}
-        env:
-          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
-        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$DEPLOY_HOOK"
+        if: env.RENDER_DEPLOY_HOOK_API != ''
+        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$RENDER_DEPLOY_HOOK_API"
       - name: Trigger web deployment
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_WEB != '' }}
-        env:
-          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
-        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$DEPLOY_HOOK"
+        if: env.RENDER_DEPLOY_HOOK_WEB != ''
+        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$RENDER_DEPLOY_HOOK_WEB"
       - name: Report missing deployment hooks
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_API == '' || secrets.RENDER_DEPLOY_HOOK_WEB == '' }}
+        if: env.RENDER_DEPLOY_HOOK_API == '' || env.RENDER_DEPLOY_HOOK_WEB == ''
         run: echo "Render deploy hooks are not configured; CI verification completed without a deployment."
