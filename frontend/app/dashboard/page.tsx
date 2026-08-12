@@ -9,14 +9,19 @@ type Candidate = { id: number; name: string; status: string; total_score: number
 type Project = { id: number; name: string; status: string };
 type Staff = { id: string; name: string; domain: string };
 
-const steps = [
-  "기반 안정화",
-  "AI Sourcing 고도화",
-  "Projects 실사용화",
-  "Finance 가드레일",
-  "Commerce/Media 운영 모듈",
-  "운영 전환",
+const workflow = [
+  { step: "1", title: "상품 후보 찾기", description: "팔아볼 상품을 검색하고 분석 결과를 저장합니다.", href: "/sourcing" },
+  { step: "2", title: "수익성 점검", description: "예산·손실 한도·최소 마진을 확인합니다.", href: "/finance" },
+  { step: "3", title: "판매 준비", description: "필수 정보를 채우고 승인 전 체크리스트를 완료합니다.", href: "/commerce" },
 ];
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pending: "검토 대기", reviewing: "검토 중", on_hold: "보류", approved: "승인",
+    rejected: "제외", selected: "선정", linked: "프로젝트 연결",
+  };
+  return labels[status] ?? status;
+}
 
 export default function DashboardPage() {
   const [ready, setReady] = useState(false);
@@ -60,7 +65,7 @@ export default function DashboardPage() {
     if (projectResponse.ok) setProjects(await projectResponse.json());
     if (staffResponse.ok) setStaff(await staffResponse.json());
     if (!candidateResponse.ok || !projectResponse.ok || !staffResponse.ok) {
-      setMessage("일부 조종석 데이터를 불러오지 못했습니다.");
+      setMessage("일부 정보를 불러오지 못했습니다. 잠시 후 새로고침하거나 로그인 상태를 확인하세요.");
     }
   }
 
@@ -78,75 +83,95 @@ export default function DashboardPage() {
   );
   const topCandidates = [...candidates].sort((a, b) => b.total_score - a.total_score).slice(0, 4);
 
+  const nextAction = useMemo(() => {
+    if (candidates.length === 0) return { label: "첫 상품 후보 찾기", detail: "아직 저장한 상품이 없습니다. 키워드 하나로 AI 분석을 시작해 보세요.", href: "/sourcing" };
+    if (reviewCount > 0) return { label: `검토 대기 후보 ${reviewCount}개 정리하기`, detail: "후보를 선정·보류·제외로 구분하면 다음 단계가 명확해집니다.", href: "/sourcing" };
+    if (selectedCount > 0 && financeReadyCount === 0) return { label: "선정 후보의 수익성 점검하기", detail: "최소 마진과 예산 기준을 통과한 후보만 판매 준비로 넘기세요.", href: "/finance" };
+    if (financeReadyCount > 0) return { label: "판매 준비 체크리스트 열기", detail: "상품 정보가 충분한지 확인하고, 외부 등록 전 승인 단계를 준비하세요.", href: "/commerce" };
+    return { label: "프로젝트 현황 확인하기", detail: "연결된 후보와 팀의 다음 작업을 확인하세요.", href: "/projects" };
+  }, [candidates.length, financeReadyCount, reviewCount, selectedCount]);
+
   if (!ready) return null;
 
   if (!token) {
     return (
       <main className="login">
         <div className="card login-card">
-          <h1>JARVIS</h1>
-          <p>조종석을 사용하려면 먼저 로그인하세요.</p>
-          <a className="button-link" href="/sourcing">로그인 화면으로 이동</a>
+          <h1>JARVIS <span>Commerce</span></h1>
+          <p>상품 후보 발굴부터 수익성 점검, 판매 준비까지 한 화면에서 관리하는 운영 도구입니다.</p>
+          <div className="login-hint"><strong>처음 실행하셨나요?</strong><br />로그인 화면에서 기본 계정으로 접속한 뒤, <b>상품 후보 찾기</b>부터 시작하세요.</div>
+          <a className="button-link" href="/sourcing">로그인하고 시작하기</a>
         </div>
       </main>
     );
   }
 
   return (
-    <AppShell active="dashboard" kicker="COMMAND COCKPIT" title="JARVIS Dashboard" description="소싱, 프로젝트, AI 직원, 재무 가드레일, 커머스와 미디어 준비 상태를 한 화면에서 봅니다." onLogout={clearSession}>
+    <AppShell active="dashboard" kicker="TODAY'S COMMAND CENTER" title="오늘 무엇부터 할까요?" description="복잡한 메뉴 대신, 지금 상태에서 가장 중요한 다음 행동부터 안내합니다." onLogout={clearSession}>
       {message && <p className="notice">{message}</p>}
 
-      <section className="metrics">
-        <article><span>저장 후보</span><strong>{candidates.length}</strong></article>
-        <article><span>검토 중</span><strong>{reviewCount}</strong></article>
-        <article><span>선정 후보</span><strong>{selectedCount}</strong></article>
-        <article><span>재무 검토 가능</span><strong>{financeReadyCount}</strong></article>
+      <section className="card start-card">
+        <span className="status-pill">추천 다음 행동</span>
+        <h3>{nextAction.label}</h3>
+        <p>{nextAction.detail}</p>
+        <a className="button-link" href={nextAction.href}>지금 시작하기</a>
+      </section>
+
+      <section className="metrics" aria-label="운영 현황">
+        <article><span>저장한 후보</span><strong>{candidates.length}</strong><small className="metric-note">분석 목록에 저장된 상품</small></article>
+        <article><span>결정이 필요한 후보</span><strong>{reviewCount}</strong><small className="metric-note">선정·보류·제외로 정리하세요</small></article>
+        <article><span>판매 후보</span><strong>{selectedCount}</strong><small className="metric-note">선정 또는 프로젝트 연결 완료</small></article>
+        <article><span>수익성 기준 통과</span><strong>{financeReadyCount}</strong><small className="metric-note">마진 25% 이상인 판매 후보</small></article>
       </section>
 
       <div className="dashboard-grid">
         <section className="card">
-          <h3>다음 행동</h3>
+          <span className="kicker">처음이라면 이 순서로</span>
+          <h3>상품을 판매 준비까지 보내는 3단계</h3>
           <div className="project-candidate-list">
-            <article className="project-candidate"><h4>1. 후보 정리</h4><p>저장 후보를 검토중, 보류, 선정, 폐기로 나눕니다.</p></article>
-            <article className="project-candidate"><h4>2. 재무 가드레일</h4><p>Finance에서 예산, 손실한도, 최소 마진을 통과하는 후보만 추립니다.</p><a className="button-link secondary" href="/finance">Finance 열기</a></article>
-            <article className="project-candidate"><h4>3. 상품 등록 준비</h4><p>Commerce에서 체크리스트와 승인 게이트를 확인합니다.</p><a className="button-link secondary" href="/commerce">Commerce 열기</a></article>
-            <article className="project-candidate"><h4>4. 콘텐츠 초안</h4><p>Media Studio에서 상품 브리프와 런칭 카피를 만듭니다.</p><a className="button-link secondary" href="/media">Media 열기</a></article>
+            {workflow.map((item) => (
+              <article className="project-candidate" key={item.step}>
+                <span className="status-pill-neutral">STEP {item.step}</span>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+                <a className="button-link secondary" href={item.href}>열기</a>
+              </article>
+            ))}
           </div>
         </section>
 
         <section className="card">
-          <h3>상위 후보</h3>
+          <span className="kicker">우선 확인</span>
+          <h3>점수가 높은 상품 후보</h3>
           <div className="project-candidate-list">
             {topCandidates.map((item) => (
               <article className="project-candidate" key={item.id}>
-                <h4>{item.name}</h4>
-                <p>{item.total_score}점 · 마진 {item.margin_rate}% · {item.status}</p>
+                <div className="result-top"><div><h4>{item.name}</h4><p>{statusLabel(item.status)}</p></div><div className="score">{item.total_score}</div></div>
+                <p>예상 마진 <b>{item.margin_rate}%</b>{item.tags ? ` · ${item.tags}` : ""}</p>
               </article>
             ))}
-            {topCandidates.length === 0 && <div className="empty">AI Sourcing에서 후보를 저장하세요.</div>}
+            {topCandidates.length === 0 && <div className="empty">아직 후보가 없습니다. 왼쪽 메뉴의 <b>상품 후보 찾기</b>에서 키워드를 검색해 보세요.</div>}
           </div>
         </section>
 
         <section className="card">
-          <h3>AI 직원</h3>
+          <span className="kicker">진행 중인 일</span>
+          <h3>프로젝트</h3>
           <div className="project-list">
-            {staff.map((item) => (
-              <a className="project-item" href="/ai-center" key={item.id}>
-                <strong>{item.name}</strong><span>{item.domain}</span>
-              </a>
-            ))}
+            {projects.map((item) => <a className="project-item" href="/projects" key={item.id}><strong>{item.name}</strong><span>{item.status}</span></a>)}
+            {projects.length === 0 && <div className="empty">프로젝트가 아직 없습니다. 후보를 정리한 뒤 프로젝트를 만들어 묶어보세요.</div>}
           </div>
+          <a className="button-link secondary" href="/projects" style={{ marginTop: 14 }}>프로젝트 관리 열기</a>
         </section>
 
         <section className="card">
-          <h3>6단계 청사진</h3>
+          <span className="kicker">도움을 받을 수 있어요</span>
+          <h3>AI 도우미</h3>
           <div className="project-list">
-            {steps.map((item, index) => (
-              <div className="project-item" key={item}>
-                <strong>{index + 1}. {item}</strong><span>{index < 5 ? "active" : "planned"}</span>
-              </div>
-            ))}
+            {staff.map((item) => <a className="project-item" href="/ai-center" key={item.id}><strong>{item.name}</strong><span>{item.domain}</span></a>)}
+            {staff.length === 0 && <div className="empty">AI 도우미 정보를 불러오는 중입니다.</div>}
           </div>
+          <a className="button-link secondary" href="/ai-center" style={{ marginTop: 14 }}>AI 도우미 보기</a>
         </section>
       </div>
     </AppShell>
