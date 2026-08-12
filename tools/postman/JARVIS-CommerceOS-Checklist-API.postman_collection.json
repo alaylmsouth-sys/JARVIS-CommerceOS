@@ -1,0 +1,232 @@
+{
+  "info": {
+    "_postman_id": "b49a7db2-56d8-45f1-b2d8-e8e2fcf47bc2",
+    "name": "JARVIS-CommerceOS Checklist API",
+    "description": "체크리스트 API의 로그인, 목록 조회, 후보 생성, 저장, 수정, 재조회를 순서대로 검증합니다. 실행 전 환경의 baseUrl, email, password를 입력하세요. 컬렉션 실행은 새 테스트 후보와 감사 기록을 생성합니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "candidateId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. 로그인",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "description": "로그인 응답의 access_token을 컬렉션 변수로 저장합니다."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const payload = pm.response.json();",
+              "pm.expect(payload.access_token).to.be.a('string').and.not.empty;",
+              "pm.collectionVariables.set('accessToken', payload.access_token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. 체크리스트 목록 조회 (저장 전)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/sourcing/checklists"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('배열 응답', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. 격리된 테스트 후보 생성",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Checklist API Test {{$guid}}\",\n  \"marketplace\": \"amazon\",\n  \"country\": \"US\",\n  \"source_price\": 12,\n  \"target_price\": 39,\n  \"shipping_cost\": 4,\n  \"platform_fee_rate\": 15,\n  \"ad_cost_rate\": 7,\n  \"competition_score\": 45,\n  \"trend_score\": 78,\n  \"brand_score\": 82\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/v1/sourcing/candidates",
+        "description": "후속 요청에 사용할 고유한 테스트 후보를 생성합니다."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "const candidate = pm.response.json();",
+              "pm.expect(candidate.id).to.be.a('number');",
+              "pm.collectionVariables.set('candidateId', String(candidate.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. 체크리스트 저장",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"copy_ready\": true,\n  \"images_ready\": true,\n  \"supplier_confirmed\": true,\n  \"inventory_confirmed\": false,\n  \"pricing_confirmed\": true,\n  \"policy_checked\": false,\n  \"notes\": \"Created by the Postman checklist API collection.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/v1/sourcing/candidates/{{candidateId}}/checklist"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const checklist = pm.response.json();",
+              "pm.expect(checklist.candidate_id).to.eql(Number(pm.collectionVariables.get('candidateId')));",
+              "pm.expect(checklist.images_ready).to.eql(true);",
+              "pm.expect(checklist.inventory_confirmed).to.eql(false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. 체크리스트 수정",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"copy_ready\": true,\n  \"images_ready\": true,\n  \"supplier_confirmed\": true,\n  \"inventory_confirmed\": true,\n  \"pricing_confirmed\": true,\n  \"policy_checked\": false,\n  \"notes\": \"Inventory confirmation updated by Postman.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/v1/sourcing/candidates/{{candidateId}}/checklist"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('재고 확인 저장', function () { pm.expect(pm.response.json().inventory_confirmed).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. 체크리스트 목록 재조회",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/sourcing/checklists"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const candidateId = Number(pm.collectionVariables.get('candidateId'));",
+              "const checklist = pm.response.json().find((item) => item.candidate_id === candidateId);",
+              "pm.test('저장된 체크리스트가 목록에 존재', function () { pm.expect(checklist).to.exist; });",
+              "pm.test('수정된 재고 확인 상태 유지', function () { pm.expect(checklist.inventory_confirmed).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
