@@ -250,3 +250,53 @@ def test_coupang_search_falls_back_when_adapter_fails(monkeypatch) -> None:
 
     assert results
     assert results[0]["marketplace"] == "coupang"
+
+
+
+def test_candidate_commerce_checklist_is_saved_and_listed() -> None:
+    with TestClient(app) as client:
+        headers = login_headers(client)
+        created = client.post(
+            "/api/v1/sourcing/candidates",
+            headers=headers,
+            json=candidate_payload("Checklist Ready Product"),
+        )
+        assert created.status_code == 201
+        candidate_id = created.json()["id"]
+
+        before = client.get("/api/v1/sourcing/checklists", headers=headers)
+        assert before.status_code == 200
+        assert before.json() == []
+
+        payload = {
+            "copy_ready": True,
+            "images_ready": True,
+            "supplier_confirmed": True,
+            "inventory_confirmed": False,
+            "pricing_confirmed": True,
+            "policy_checked": False,
+            "notes": "Supplier quoted a seven-day lead time.",
+        }
+        saved = client.put(
+            f"/api/v1/sourcing/candidates/{candidate_id}/checklist",
+            headers=headers,
+            json=payload,
+        )
+        assert saved.status_code == 200
+        body = saved.json()
+        assert body["candidate_id"] == candidate_id
+        assert body["images_ready"] is True
+        assert body["inventory_confirmed"] is False
+        assert body["notes"] == payload["notes"]
+
+        listed = client.get("/api/v1/sourcing/checklists", headers=headers)
+        assert listed.status_code == 200
+        assert listed.json()[0]["candidate_id"] == candidate_id
+
+        changed = client.put(
+            f"/api/v1/sourcing/candidates/{candidate_id}/checklist",
+            headers=headers,
+            json={**payload, "inventory_confirmed": True},
+        )
+        assert changed.status_code == 200
+        assert changed.json()["inventory_confirmed"] is True
