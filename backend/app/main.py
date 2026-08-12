@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from sqlalchemy import select
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import select, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.core.security import hash_password
@@ -61,3 +62,13 @@ def health() -> dict[str, str]:
         "service": "jarvis-commerceos-api",
         "version": settings.app_version,
     }
+
+
+@app.get("/health/ready")
+def readiness() -> dict[str, str]:
+    try:
+        with SessionLocal() as db:
+            db.execute(text("SELECT 1"))
+    except SQLAlchemyError as error:
+        raise HTTPException(status_code=503, detail="Database is not ready") from error
+    return {"status": "ready", "service": "jarvis-commerceos-api"}

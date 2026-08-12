@@ -7,7 +7,10 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /health
+    # Free plan에서는 preDeployCommand를 사용할 수 없어 Docker 시작 직전에 마이그레이션을 수행합니다.
+    dockerCommand: /bin/sh -c "python -m alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health/ready
+    maxShutdownDelaySeconds: 60
     autoDeployTrigger: checksPass
     envVars:
       - key: ENVIRONMENT
@@ -20,6 +23,10 @@ services:
         generateValue: true
       - key: ACCESS_TOKEN_MINUTES
         value: "1440"
+      - key: AI_PROVIDER
+        value: deterministic
+      - key: OPENAI_API_KEY
+        sync: false
       - key: DEFAULT_ADMIN_EMAIL
         sync: false
       - key: DEFAULT_ADMIN_PASSWORD
@@ -34,6 +41,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /sourcing
+    maxShutdownDelaySeconds: 60
     autoDeployTrigger: checksPass
     envVars:
       - key: BACKEND_EXTERNAL_HOSTNAME

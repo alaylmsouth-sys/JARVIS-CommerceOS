@@ -45,7 +45,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_provider_settings(self) -> "Settings":
-        if self.ai_provider == "openai" and self.openai_api_key is None:
+        if self.ai_provider == "openai" and (
+            self.openai_api_key is None
+            or not self.openai_api_key.get_secret_value().strip()
+        ):
             raise ValueError("OPENAI_API_KEY is required when AI_PROVIDER=openai")
         return self
 

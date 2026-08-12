@@ -15,9 +15,10 @@ services:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes: [redis_data:/data]
-  backend:
+  migrate:
     build: ./backend
-    environment:
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    environment: &backend_environment
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://jarvis:change-me@db:5432/jarvis}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
@@ -26,7 +27,14 @@ services:
       DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-change-me-now}
     depends_on:
       db: {condition: service_healthy}
+
+  backend:
+    build: ./backend
+    environment: *backend_environment
+    depends_on:
+      db: {condition: service_healthy}
       redis: {condition: service_started}
+      migrate: {condition: service_completed_successfully}
     ports: ["8001:8000"]
   frontend:
     build: ./frontend

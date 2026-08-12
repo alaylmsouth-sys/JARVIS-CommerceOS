@@ -34,3 +34,34 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build --tag jarvis-commerceos-api:test backend
       - run: docker build --tag jarvis-commerceos-web:test frontend
+
+  deployment-config:
+    name: Validate deployment configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install PyYAML==6.0.2
+      - run: python tools/validate_deployment_yaml.py
+
+  deploy:
+    name: Deploy to Render
+    needs: [backend, frontend, docker, deployment-config]
+    # render.yaml의 checksPass 자동 배포를 기본값으로 사용합니다. 훅 방식을 택할 때만 저장소 변수로 활성화합니다.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.RENDER_DEPLOY_HOOKS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger API deployment
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_API != '' }}
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$DEPLOY_HOOK"
+      - name: Trigger web deployment
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_WEB != '' }}
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
+        run: curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "$DEPLOY_HOOK"
+      - name: Report missing deployment hooks
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_API == '' || secrets.RENDER_DEPLOY_HOOK_WEB == '' }}
+        run: echo "Render deploy hooks are not configured; CI verification completed without a deployment."

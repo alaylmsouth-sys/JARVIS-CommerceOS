@@ -48,6 +48,12 @@ def test_production_accepts_secure_render_configuration() -> None:
     assert settings.environment == "production"
 
 
+@pytest.mark.parametrize("api_key", [None, "", "   "])
+def test_openai_provider_rejects_missing_or_blank_api_key(api_key: str | None) -> None:
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, ai_provider="openai", openai_api_key=api_key)
+
+
 def test_production_validation_errors_hide_secret_inputs() -> None:
     secret_password = "do-not-log"
 
